@@ -108,7 +108,7 @@ python3 -m pip install pandas
 python3 -m pip install openpyxl
 ```
 
-## trouble shooting1 :: 에러 원인 확인 및 해결
+## trouble shooting1 :: 완료
 ```
 ubuntu@ubuntu:~/workspace/user/luna$ ./linux_cce.py 
 -bash: ./linux_cce.py: /usr/bin/python3^M: bad interpreter: No such file or directory
@@ -121,8 +121,9 @@ $ sed -i 's/\r$//' {파일명}.py
 ubuntu@ubuntu:~/workspace/user/luna$ sed -i 's/\r$//' linux_cce.py 
 ```
 
-## trouble shooting2 :: 파이참으로는 에러 발생x, linux 환경에서 해당 코드 실행 시 에러  
+## trouble shooting2 :: 미완  
 - 정확한 파일명이 아닌 *로 txt 파일 지정 시 아래와 같은 에러 발생
+   + 파이참으로는 에러 발생x, linux 환경에서 해당 코드 실행 시 에러
 ```
 f = open("./*.txt", "rt", encoding="UTF-8") 
 
