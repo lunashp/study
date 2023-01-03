@@ -124,8 +124,17 @@ ubuntu@ubuntu:~/workspace/user/luna$ sed -i 's/\r$//' linux_cce.py
 ## trouble shooting2 :: 완료
 - 정확한 파일명이 아닌 *로 txt 파일 지정 시 아래와 같은 에러 발생
 ```
-f = open("./*.txt", "rt", encoding="UTF-8") 
+# -*- coding: utf-8 -*-
+import pandas as pd
+import re
+import string
 
+f = open("./test_data.txt", "rt", encoding="UTF-8")
+txt_list = f.readlines()
+f.close()
+data = "".join(txt_list)
+
+---
 ubuntu@ubuntu:~/workspace/user/luna$ ./linux_cce.py 
 Traceback (most recent call last):
   File "./linux_cce.py", line 8, in <module>
