@@ -121,9 +121,8 @@ $ sed -i 's/\r$//' {파일명}.py
 ubuntu@ubuntu:~/workspace/user/luna$ sed -i 's/\r$//' linux_cce.py 
 ```
 
-## trouble shooting2 :: 미완  
+## trouble shooting2 :: 완료
 - 정확한 파일명이 아닌 *로 txt 파일 지정 시 아래와 같은 에러 발생
-   + 파이참으로는 에러 발생x, linux 환경에서 해당 코드 실행 시 에러
 ```
 f = open("./*.txt", "rt", encoding="UTF-8") 
 
@@ -133,5 +132,20 @@ Traceback (most recent call last):
     f = open("./*.txt", "rt", encoding="UTF-8")
 FileNotFoundError: [Errno 2] No such file or directory: './*.txt'
 ```
+## 변경 코드
+```
+# -*- coding: utf-8 -*-
+import pandas as pd
+import re
+import glob
+
+for filename in glob.glob('*.txt'):
+    f = open(filename, "rt", encoding="UTF-8")
+    txt_list = f.readlines()
+    f.close()
+    data = "".join(txt_list)
+```
+
+
 
 
