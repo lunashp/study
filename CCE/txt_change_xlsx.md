@@ -288,3 +288,103 @@ with pd.ExcelWriter("result_multi.xlsx") as writer:
     result_df.to_excel(writer, sheet_name="Sheet2")
 ```
 
+---
+
+# MySQL
+```
+# -*- coding: utf-8 -*-
+import pandas as pd
+import re
+import glob
+
+for filename in glob.glob('./MySQL*.txt'):
+    f = open(filename, "rt", encoding="UTF-8")
+    txt_list = f.readlines()
+    f.close()
+    data = "".join(txt_list)
+
+def get_preprocess_li(data):
+    re_id = re.compile(r"\[ID\] : [\S]*\n", re.DOTALL)
+    re_result = re.compile(r"\[Result\] : [\S]*\n", re.DOTALL)
+    re_comment = re.compile(r"\[Comment\] : .*\n", re.DOTALL)
+
+    split_list = data.split("======================================================================================")
+    result_list = []
+    for sp in split_list:
+        tmp_list = []
+        id_txt = re_id.findall(sp)
+        result_txt = re_result.findall(sp)
+        comment_txt = re_comment.findall(sp)
+        print(comment_txt)
+        if (id_txt and result_txt and comment_txt):
+            tmp_list.append(id_txt[0][6:-1])
+            tmp_list.append(result_txt[0][10:-1])
+            tmp_list.append(comment_txt[0][10:-1])
+            result_list.append(tmp_list)
+            print(tmp_list)
+    return result_list
+
+result_list = get_preprocess_li(data)
+result_df = pd.DataFrame(result_list, columns=["ID", "취약", "진단|가이드 PAGE"])
+# result_df.replace(to_replace='Good', value='N', regex=True, inplace=True)
+# result_df.replace({'Good':'N', 'Info':'E', 'Weak':'Y'}, inplace=True)
+result_df.replace(['Good', 'Info', 'Weak'], ['N', 'E', 'Y'], inplace=True)
+
+# 고정값
+result_df["자산명"] = " "
+result_df["호스트명"] = " "
+result_df["OS(SW)/버전"] = "mariadb"
+result_df["진단항목"] = ['불필요한 계정 제거','취약한 패스워드 사용제한','타사용자에 권한 부여 옵션 사용제한','DB 사용자 계정 정보 테이블 접근','root 권한으로 서버 구동 제한','환경설정 파일 접근 권한','안전한 암호화 알고리즘 사용','로그 활성화','최신패치 적용']
+result_df[" "] = [252,253,254,255,256,257,258,259,260]
+result_df["조치방법"] = " "
+result_df["정상 동작 확인 방법"] = " "
+result_df["조치 확인"] = " "
+result_df["비고"] = " "
+
+
+
+# 고정값 넣고 컬럼 순서 재정렬
+result_df = result_df[["취약", "자산명", "ID", "호스트명", "OS(SW)/버전", "진단항목", "진단|가이드 PAGE", " ", "조치방법", "정상 동작 확인 방법", "조치 확인", "비고"]]
+
+
+# 단일 시트
+result_df.to_excel("result.xlsx", sheet_name="Sheet1")
+# 다중시트
+with pd.ExcelWriter("result_multi.xlsx") as writer:
+    result_df.to_excel(writer, sheet_name="Sheet1")
+    result_df.to_excel(writer, sheet_name="Sheet2")
+```
+
+## 에러확인
+- txt 파일 정제 작업 필요로 예상 
+```
+[]
+['[Comment] : \n# DBMS 계정 목록 조회\n+--------------------------------------+--------------+---------------------------------------------+\n| Host                                 | User         | authentication_string                       |\n+--------------------------------------+--------------+---------------------------------------------+\n| localhost                            | mariadb.sys  | MIDfPTqc59xa5AGJi/FNY/ydAnCA9bas0UkY/ln+r2o |\n| localhost                            | root         | MIDfPTqc59xa5AGJi/FNY/ydAnCA9bas0UkY/ln+r2o |\n| localhost                            | vcap         | MIDfPTqc59xa5AGJi/FNY/ydAnCA9bas0UkY/ln+r2o |\n| localhost                            |              |                                             |\n| b5484ee5-4a21-4a6f-8e45-f11376a2d60a |              |                                             |\n| %                                    | root         | MIDfPTqc59xa5AGJi/FNY/ydAnCA9bas0UkY/ln+r2o |\n| localhost                            | applifecycle | MvkMYwKe+gVg2Isp0VAXocR/EA+yVjEqAynYDUKndOg |\n| %                                    | applifecycle | MvkMYwKe+gVg2Isp0VAXocR/EA+yVjEqAynYDUKndOg |\n+--------------------------------------+--------------+---------------------------------------------+\n\n[Check]\n*DB 설치 시 Default로 생성되는 계정 및 테스트 계정, 의심스러운 계정, 불필요한 계정이 없으면 양호\n\n']
+[' DY-01', ' Info', ': \n# DBMS 계정 목록 조회\n+--------------------------------------+--------------+---------------------------------------------+\n| Host                                 | User         | authentication_string                       |\n+--------------------------------------+--------------+---------------------------------------------+\n| localhost                            | mariadb.sys  | MIDfPTqc59xa5AGJi/FNY/ydAnCA9bas0UkY/ln+r2o |\n| localhost                            | root         | MIDfPTqc59xa5AGJi/FNY/ydAnCA9bas0UkY/ln+r2o |\n| localhost                            | vcap         | MIDfPTqc59xa5AGJi/FNY/ydAnCA9bas0UkY/ln+r2o |\n| localhost                            |              |                                             |\n| b5484ee5-4a21-4a6f-8e45-f11376a2d60a |              |                                             |\n| %                                    | root         | MIDfPTqc59xa5AGJi/FNY/ydAnCA9bas0UkY/ln+r2o |\n| localhost                            | applifecycle | MvkMYwKe+gVg2Isp0VAXocR/EA+yVjEqAynYDUKndOg |\n| %                                    | applifecycle | MvkMYwKe+gVg2Isp0VAXocR/EA+yVjEqAynYDUKndOg |\n+--------------------------------------+--------------+---------------------------------------------+\n\n[Check]\n*DB 설치 시 Default로 생성되는 계정 및 테스트 계정, 의심스러운 계정, 불필요한 계정이 없으면 양호\n']
+['[Comment] : \n가. 사용자 계정과 패스워드가 동일한지 점검\n+--------------------------------------+------+\n| Host                                 | User |\n+--------------------------------------+------+\n| localhost                            |      |\n| b5484ee5-4a21-4a6f-8e45-f11376a2d60a |      |\n+--------------------------------------+------+\n\n나. 사용자 계정의 패스워드가 null인지 여부 점검\n+--------------------------------------+------+-----------------------+\n| Host                                 | User | authentication_string |\n+--------------------------------------+------+-----------------------+\n| localhost                            |      |                       |\n| b5484ee5-4a21-4a6f-8e45-f11376a2d60a |      |                       |\n+--------------------------------------+------+-----------------------+\n\n[Check] :\n*계정명과 동일하거나, 추측 가능한 패스워드를 사용하지 않으면 양호\n\n']
+[' DY-02', ' Info', ': \n가. 사용자 계정과 패스워드가 동일한지 점검\n+--------------------------------------+------+\n| Host                                 | User |\n+--------------------------------------+------+\n| localhost                            |      |\n| b5484ee5-4a21-4a6f-8e45-f11376a2d60a |      |\n+--------------------------------------+------+\n\n나. 사용자 계정의 패스워드가 null인지 여부 점검\n+--------------------------------------+------+-----------------------+\n| Host                                 | User | authentication_string |\n+--------------------------------------+------+-----------------------+\n| localhost                            |      |                       |\n| b5484ee5-4a21-4a6f-8e45-f11376a2d60a |      |                       |\n+--------------------------------------+------+-----------------------+\n\n[Check] :\n*계정명과 동일하거나, 추측 가능한 패스워드를 사용하지 않으면 양호\n']
+['[Comment] : \n# grant_priv을 부여 받은 사용자 조회\n+-----------+--------------+------------+\n| Host      | User         | Grant_priv |\n+-----------+--------------+------------+\n| localhost | root         | Y          |\n| localhost | vcap         | Y          |\n| %         | root         | Y          |\n| %         | applifecycle | Y          |\n+-----------+--------------+------------+\n\n[Check] : \n*grant_priv 권한이 적절한 사용자에게 부여되어 있으면 양호\n\n']
+[' DY-03', ' Info', ': \n# grant_priv을 부여 받은 사용자 조회\n+-----------+--------------+------------+\n| Host      | User         | Grant_priv |\n+-----------+--------------+------------+\n| localhost | root         | Y          |\n| localhost | vcap         | Y          |\n| %         | root         | Y          |\n| %         | applifecycle | Y          |\n+-----------+--------------+------------+\n\n[Check] : \n*grant_priv 권한이 적절한 사용자에게 부여되어 있으면 양호\n']
+['[Comment] : \n# mysql.user 테이블 접근이 가능한 사용자 조회\n+--------------------------------------+--------------+-------------+\n| Host                                 | User         | Select_priv |\n+--------------------------------------+--------------+-------------+\n| localhost                            | mariadb.sys  | N           |\n| localhost                            | root         | Y           |\n| localhost                            | vcap         | Y           |\n| localhost                            |              | N           |\n| b5484ee5-4a21-4a6f-8e45-f11376a2d60a |              | N           |\n| %                                    | root         | Y           |\n| localhost                            | applifecycle | N           |\n| %                                    | applifecycle | Y           |\n+--------------------------------------+--------------+-------------+\n\n[Check]\n*DB사용자 계정 정보 테이블의 접근 권한이 적절한 사용자에게 부여되어 있으면 양호\n\n']
+[' DY-04', ' Info', ': \n# mysql.user 테이블 접근이 가능한 사용자 조회\n+--------------------------------------+--------------+-------------+\n| Host                                 | User         | Select_priv |\n+--------------------------------------+--------------+-------------+\n| localhost                            | mariadb.sys  | N           |\n| localhost                            | root         | Y           |\n| localhost                            | vcap         | Y           |\n| localhost                            |              | N           |\n| b5484ee5-4a21-4a6f-8e45-f11376a2d60a |              | N           |\n| %                                    | root         | Y           |\n| localhost                            | applifecycle | N           |\n| %                                    | applifecycle | Y           |\n+--------------------------------------+--------------+-------------+\n\n[Check]\n*DB사용자 계정 정보 테이블의 접근 권한이 적절한 사용자에게 부여되어 있으면 양호\n']
+['[Comment] : \n# my.cnf 설정 확인\nuser            = vcap\n\n# My-SQL 프로세스 확인\nroot      4770     1  0 11:58 ?        00:00:00 /bin/sh /var/vcap/packages/mariadb/bin/mysqld_safe --defaults-file=/var/vcap/jobs/mariadb/config/mariadb.cnf --user=vcap\nvcap      4975  4770  0 11:59 ?        00:00:03 /var/vcap/packages/mariadb/bin/mariadbd --defaults-file=/var/vcap/jobs/mariadb/config/mariadb.cnf --basedir=/var/vcap/packages/mariadb --datadir=/var/vcap/store/mariadb --plugin-dir=/var/vcap/packages/mariadb/lib/plugin --user=vcap --log-error=/var/vcap/sys/log/mariadb/mariadb-error.log --pid-file=/var/vcap/sys/run/mariadb/mariadb.pid --socket=/var/vcap/sys/run/mariadb/mysql.sock --port=31306\nroot      6187  5635  0 17:20 pts/0    00:00:00 sh ./mysql_5.7_v4.1(PaaS-TA).bin\n\n']
+[' DY-05', ' Info', ': \n# my.cnf 설정 확인\nuser            = vcap\n\n# My-SQL 프로세스 확인\nroot      4770     1  0 11:58 ?        00:00:00 /bin/sh /var/vcap/packages/mariadb/bin/mysqld_safe --defaults-file=/var/vcap/jobs/mariadb/config/mariadb.cnf --user=vcap\nvcap      4975  4770  0 11:59 ?        00:00:03 /var/vcap/packages/mariadb/bin/mariadbd --defaults-file=/var/vcap/jobs/mariadb/config/mariadb.cnf --basedir=/var/vcap/packages/mariadb --datadir=/var/vcap/store/mariadb --plugin-dir=/var/vcap/packages/mariadb/lib/plugin --user=vcap --log-error=/var/vcap/sys/log/mariadb/mariadb-error.log --pid-file=/var/vcap/sys/run/mariadb/mariadb.pid --socket=/var/vcap/sys/run/mariadb/mysql.sock --port=31306\nroot      6187  5635  0 17:20 pts/0    00:00:00 sh ./mysql_5.7_v4.1(PaaS-TA).bin\n']
+['[Comment] : \n-rw-r----- 1 root vcap 2078 Nov 30 11:32 /var/vcap/jobs/mariadb/config/mariadb.cnf\n\n[Check]\n*initialization 파일 접근 권한이 640(rw-r-----) 이하이면 양호\n\n']
+[' DY-06', ' Good', ': \n-rw-r----- 1 root vcap 2078 Nov 30 11:32 /var/vcap/jobs/mariadb/config/mariadb.cnf\n\n[Check]\n*initialization 파일 접근 권한이 640(rw-r-----) 이하이면 양호\n']
+[]
+[]
+[]
+[]
+Traceback (most recent call last):
+  File "C:\Users\Revit007\PycharmProjects\pythonProject\main.py", line 43, in <module>
+    result_df["진단항목"] = ['불필요한 계정 제거','취약한 패스워드 사용제한','타사용자에 권한 부여 옵션 사용제한','DB 사용자 계정 정보 테이블 접근','root 권한으로 서버 구동 제한','환경설정 파일 접근 권한','안전한 암호화 알고리즘 사용','로그 활성화','최신패치 적용']
+  File "C:\Users\Revit007\PycharmProjects\pythonProject\venv\lib\site-packages\pandas\core\frame.py", line 3978, in __setitem__
+    self._set_item(key, value)
+  File "C:\Users\Revit007\PycharmProjects\pythonProject\venv\lib\site-packages\pandas\core\frame.py", line 4172, in _set_item
+    value = self._sanitize_column(value)
+  File "C:\Users\Revit007\PycharmProjects\pythonProject\venv\lib\site-packages\pandas\core\frame.py", line 4912, in _sanitize_column
+    com.require_length_match(value, self.index)
+  File "C:\Users\Revit007\PycharmProjects\pythonProject\venv\lib\site-packages\pandas\core\common.py", line 561, in require_length_match
+    raise ValueError(
+ValueError: Length of values (9) does not match length of index (6)
+```
