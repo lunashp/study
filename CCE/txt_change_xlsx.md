@@ -388,3 +388,97 @@ Traceback (most recent call last):
     raise ValueError(
 ValueError: Length of values (9) does not match length of index (6)
 ```
+
+# Tomcat
+## python code
+```
+# -*- coding: utf-8 -*-
+import pandas as pd
+import re
+import glob
+
+for filename in glob.glob('Tomcat*.txt'):
+    f = open(filename, "rt", encoding="UTF-8")
+    txt_list = f.readlines()
+    f.close()
+    data = "".join(txt_list)
+
+def get_preprocess_li(data):
+    re_id = re.compile(r"\[ID\] : [\S]*\n", re.DOTALL)
+    re_result = re.compile(r"\[Result\] : [\S]*\n", re.DOTALL)
+    re_comment = re.compile(r"\[Comment\] : .*\n", re.DOTALL)
+
+    split_list = data.split("======================================================================================")
+    result_list = []
+
+    for sp in split_list:
+        tmp_list = []
+        id_txt = re_id.findall(sp)
+        result_txt = re_result.findall(sp)
+        comment_txt = re_comment.findall(sp)
+        if (id_txt and result_txt and comment_txt):
+            tmp_list.append(id_txt[0][6:-1])
+            #print(tmp_list)
+            tmp_list.append(result_txt[0][10:-1])
+            #print(tmp_list)
+            tmp_list.append(comment_txt[0][10:-1])
+            print(tmp_list)
+            result_list.append(tmp_list)
+            #print(result_list)
+    return result_list
+
+
+result_list = get_preprocess_li(data)
+result_df = pd.DataFrame(result_list, columns=["ID", "취약", "진단|가이드 PAGE"])
+# result_df.replace(to_replace='Good', value='N', regex=True, inplace=True)
+# result_df.replace({'Good':'N', 'Info':'E', 'Weak':'Y'}, inplace=True)
+result_df.replace(['Good', 'Info', 'Weak'], ['N', 'E', 'Y'], inplace=True)
+
+# 고정값
+result_df["자산명"] = " "
+result_df["호스트명"] = " "
+result_df["진단항목"] = ['Default 관리자 계정명 변경', '취약한 패스워드 사용제한', '	패스워드 파일 권한 관리', '홈디렉터리 쓰기 권한 관리', '환경설정 파일 권한 관리', '디렉터리 리스팅 설정 제한', '에러 메시지 관리', '로그 파일 주기적 백업', '최신 패치 적용']
+result_df[" "] = [284, 286, 287, 289, 290, 292, 293, 294, 295]
+result_df["조치방법"] = " "
+result_df["정상 동작 확인 방법"] = " "
+result_df["조치 확인"] = " "
+result_df["비고"] = " "
+result_df["OS(SW)/버전"] = " "
+
+
+# 고정값 넣고 컬럼 순서 재정렬
+result_df = result_df[["취약", "자산명", "ID", "호스트명", "OS(SW)/버전", "진단항목", "진단|가이드 PAGE", " ", "조치방법", "정상 동작 확인 방법", "조치 확인", "비고"]]
+
+# 단일 시트
+result_df.to_excel("result.xlsx", sheet_name="Sheet1")
+# 다중시트
+with pd.ExcelWriter("result_multi.xlsx") as writer:
+    result_df.to_excel(writer, sheet_name="Sheet1")
+    result_df.to_excel(writer, sheet_name="Sheet2")
+```
+
+## error
+```
+[' WS-01', ' Info', ': \ntomcat-users.xml 파일 설정 확인\n<?xml version="1.0" encoding="UTF-8"?>\n<!--\n  Licensed to the Apache Software Foundation (ASF) under one or more\n  contributor license agreements.  See the NOTICE file distributed with\n  this work for additional information regarding copyright ownership.\n  The ASF licenses this file to You under the Apache License, Version 2.0\n  (the "License"); you may not use this file except in compliance with\n  the License.  You may obtain a copy of the License at\n\n      http://www.apache.org/licenses/LICENSE-2.0\n\n  Unless required by applicable law or agreed to in writing, software\n  distributed under the License is distributed on an "AS IS" BASIS,\n  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n  See the License for the specific language governing permissions and\n  limitations under the License.\n-->\n<tomcat-users xmlns="http://tomcat.apache.org/xml"\n              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"\n              xsi:schemaLocation="http://tomcat.apache.org/xml tomcat-users.xsd"\n              version="1.0">\n<!--\n  By default, no user is included in the "manager-gui" role required\n  to operate the "/manager/html" web application.  If you wish to use this app,\n  you must define such a user - the username and password are arbitrary.\n\n  Built-in Tomcat manager roles:\n    - manager-gui    - allows access to the HTML GUI and the status pages\n    - manager-script - allows access to the HTTP API and the status pages\n    - manager-jmx    - allows access to the JMX proxy and the status pages\n    - manager-status - allows access to the status pages only\n\n  The users below are wrapped in a comment and are therefore ignored. If you\n  wish to configure one or more of these users for use with the manager web\n  application, do not forget to remove the <!.. ..> that surrounds them. You\n  will also need to set the passwords to something appropriate.\n-->\n<!--\n  <user username="admin" password="<must-be-changed>" roles="manager-gui"/>\n  <user username="robot" password="<must-be-changed>" roles="manager-script"/>\n-->\n<!--\n  The sample user and role entries below are intended for use with the\n  examples web application. They are wrapped in a comment and thus are ignored\n  when reading this file. If you wish to configure these users for use with the\n  examples web application, do not forget to remove the <!.. ..> that surrounds\n  them. You will also need to set the passwords to something appropriate.\n-->\n<!--\n  <role rolename="tomcat"/>\n  <role rolename="role1"/>\n  <user username="tomcat" password="<must-be-changed>" roles="tomcat"/>\n  <user username="both" password="<must-be-changed>" roles="tomcat,role1"/>\n  <user username="role1" password="<must-be-changed>" roles="role1"/>\n-->\n</tomcat-users>\n\n[Check] 계정명이 Default 계정명으로 설정되어 있지 않으면 양호']
+[' WS-02', ' Info', ': \ntomcat-users.xml 파일 설정 확인\n<?xml version="1.0" encoding="UTF-8"?>\n<!--\n  Licensed to the Apache Software Foundation (ASF) under one or more\n  contributor license agreements.  See the NOTICE file distributed with\n  this work for additional information regarding copyright ownership.\n  The ASF licenses this file to You under the Apache License, Version 2.0\n  (the "License"); you may not use this file except in compliance with\n  the License.  You may obtain a copy of the License at\n\n      http://www.apache.org/licenses/LICENSE-2.0\n\n  Unless required by applicable law or agreed to in writing, software\n  distributed under the License is distributed on an "AS IS" BASIS,\n  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n  See the License for the specific language governing permissions and\n  limitations under the License.\n-->\n<tomcat-users xmlns="http://tomcat.apache.org/xml"\n              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"\n              xsi:schemaLocation="http://tomcat.apache.org/xml tomcat-users.xsd"\n              version="1.0">\n<!--\n  By default, no user is included in the "manager-gui" role required\n  to operate the "/manager/html" web application.  If you wish to use this app,\n  you must define such a user - the username and password are arbitrary.\n\n  Built-in Tomcat manager roles:\n    - manager-gui    - allows access to the HTML GUI and the status pages\n    - manager-script - allows access to the HTTP API and the status pages\n    - manager-jmx    - allows access to the JMX proxy and the status pages\n    - manager-status - allows access to the status pages only\n\n  The users below are wrapped in a comment and are therefore ignored. If you\n  wish to configure one or more of these users for use with the manager web\n  application, do not forget to remove the <!.. ..> that surrounds them. You\n  will also need to set the passwords to something appropriate.\n-->\n<!--\n  <user username="admin" password="<must-be-changed>" roles="manager-gui"/>\n  <user username="robot" password="<must-be-changed>" roles="manager-script"/>\n-->\n<!--\n  The sample user and role entries below are intended for use with the\n  examples web application. They are wrapped in a comment and thus are ignored\n  when reading this file. If you wish to configure these users for use with the\n  examples web application, do not forget to remove the <!.. ..> that surrounds\n  them. You will also need to set the passwords to something appropriate.\n-->\n<!--\n  <role rolename="tomcat"/>\n  <role rolename="role1"/>\n  <user username="tomcat" password="<must-be-changed>" roles="tomcat"/>\n  <user username="both" password="<must-be-changed>" roles="tomcat,role1"/>\n  <user username="role1" password="<must-be-changed>" roles="role1"/>\n-->\n</tomcat-users>\n\n[Check] 관리자 패스워드가 암호화 되어 있거나, 유추하기 쉬운 패스워드로 설정되어 있지 않으면 양호']
+[' WS-03', ' Good', ': \ntomcat-users.xml 파일 권한 확인\n-rw------- 1 vcap vcap 2756 Jul 14 21:28 /var/vcap/data/uaa/tomcat/conf/tomcat-users.xml\n\n/var/vcap/data/uaa/tomcat/conf/tomcat-users.xml 파일의 퍼미션이 600이하이므로 양호함\n\n[Check] 패스워드 파일에 권한이 600(rw-------) 이하로 설정되어 있으면 양호']
+[' WS-04', ' Info', ': \n가. Default Document Root 권한 확인(소스 설치)\ndrwx------ 6 vcap vcap 4096 Oct 13 09:44 /var/vcap/data/uaa/tomcat/webapps/ROOT\n\n나. 관리서버 홈 디렉터리 권한 확인(소스 설치)\nls: cannot access \'/var/vcap/data/uaa/tomcat/webapps/manager\': No such file or directory\n\n다. 웹 소스 홈 디렉터리 권한 확인\ndrwx------ 4 vcap vcap 4096 Oct 13 09:45 /var/vcap/data/uaa/tomcat/webapps\n\n[참고]\n※ Default Document Root를 사용하지 않을 경우 server.xml 파일 참조\n\nserver.xml 파일 설정 확인\n            appBase="webapps"\n\n[Check] 홈 디렉토리 또는 웹 서버, 관리 서버 디렉터리 권한이 755(drwxr-xr-x)로 설정되어 있으면 양호']
+[' WS-05', ' Info', ': \n가. 환경설정 파일 권한 확인\ntotal 236\ndrwx------ 3 vcap vcap   4096 Oct 13 09:45 .\ndrwxr-xr-x 9 vcap vcap   4096 Oct 13 09:40 ..\ndrwxr-x--- 3 vcap vcap   4096 Oct 13 09:44 Catalina\n-rw------- 1 vcap vcap  12953 Jul 14 21:28 catalina.policy\n-rw------- 1 vcap vcap   7308 Jul 14 21:28 catalina.properties\n-rw------- 1 vcap vcap   1076 Oct 13 09:17 context.xml\n-rw------- 1 vcap vcap   1149 Jul 14 21:28 jaspic-providers.xml\n-rw------- 1 vcap vcap   2313 Jul 14 21:28 jaspic-providers.xsd\n-rw------- 1 vcap vcap   2535 Oct 13 09:17 logging.properties\n-rw------- 1 vcap vcap   2973 Oct 13 09:17 server.xml\n-rw------- 1 vcap vcap   2756 Jul 14 21:28 tomcat-users.xml\n-rw------- 1 vcap vcap   2558 Jul 14 21:28 tomcat-users.xsd\n-rw------- 1 vcap vcap 173045 Oct 13 09:45 web.xml\n\n나. Default 소스파일 권한 확인(소스 설치)\ntotal 24\ndrwx------ 6 vcap vcap 4096 Oct 13 09:44 .\ndrwx------ 4 vcap vcap 4096 Oct 13 09:45 ..\ndrwx------ 2 vcap vcap 4096 Oct 13 09:44 META-INF\ndrwx------ 5 vcap vcap 4096 Oct 13 09:44 WEB-INF\ndrwx------ 6 vcap vcap 4096 Oct 13 09:44 resources\ndrwx------ 4 vcap vcap 4096 Oct 13 09:44 vendor\n\n다. 웹 소스파일 권한 확인\ntotal 83784\ndrwx------ 4 vcap vcap     4096 Oct 13 09:45 .\ndrwxr-xr-x 9 vcap vcap     4096 Oct 13 09:40 ..\ndrwx------ 6 vcap vcap     4096 Oct 13 09:44 ROOT\n-rwx------ 1 vcap vcap 66855501 Aug 23 01:30 ROOT.war\ndrwx------ 5 vcap vcap     4096 Oct 13 09:45 statsd\n-rwx------ 1 vcap vcap 18916490 Aug 23 01:30 statsd.war\n\n[참고]\n※ Default Document Root를 사용하지 않을 경우 server.xml 파일 참조\n\n# Tomcat 설치 디렉터리\n/var/vcap/data/uaa/tomcat\n\n# Tomcat 설정파일 디렉터리 경로\n/var/vcap/data/uaa/tomcat/conf\n\n\nserver.xml 파일 설정 확인\n            appBase="webapps"\n\n[Check] WAS 전용계정 소유이고 소스파일 퍼미션 644, 설정파일 퍼미션 600으로 설정되어 있으면 양호']
+[' WS-06', ' Weak', ': \nweb.xml 파일 설정 확인\n--\n--\n--\n--\n--\n            <param-name>listings</param-name>\n            <param-value>false</param-value>\n--\n[Check] 디렉토리 리스팅이 설정되어 있지 않으면 양호\n\n[취약] 디렉토리 리스팅이 설정되어 있으므로 취약함\n']
+[' WS-08', ' Info', ': \n[인터뷰]\n\n1. 백업 정책을 바탕으로 주기적인 백업 절차를 수립여부 확인\n2. 유지보수 및 Upgrade 작업 시에는 전체 Full 백업 절차를 수립하고 있는지 확인\n3. 주기적인 백업정책 설정을 하고, 백업내용의 복사본이 안전한 off-site에 보관하고 있는지 확인\n\n[참고]\n로그 파일 확인\n로그 파일 확인(소스설치 시)\ntotal 8\ndrwxr-x--- 2 vcap vcap 4096 Jul 14 21:28 .\ndrwxr-xr-x 9 vcap vcap 4096 Oct 13 09:40 ..\n\nTomcat dpkg가 설치되어 있지 않습니다.']
+[' WS-09', ' Info', ': \n가. Tomcat 버전 확인(패키지의 경우)\nTomcat dpkg 버전이 설치 되어 있지 않습니다.\n\n나. version.sh 파일을 통한 버전 확인(소스설치 일 경우)\nNeither the JAVA_HOME nor the JRE_HOME environment variable is defined\nAt least one of these environment variable is needed to run this program\n\n다. jar 파일을 통한 버전 확인\n./tomcat_v4.1.bin: 441: eval: java: not found\n[Check] 최신 패치를 적용 하였으면 양호']
+Traceback (most recent call last):
+  File "C:\Users\Revit007\PycharmProjects\pythonProject\tomcat.py", line 46, in <module>
+    result_df["진단항목"] = ['Default 관리자 계정명 변경', '취약한 패스워드 사용제한', '	패스워드 파일 권한 관리', '홈디렉터리 쓰기 권한 관리', '환경설정 파일 권한 관리', '디렉터리 리스팅 설정 제한', '에러 메시지 관리', '로그 파일 주기적 백업', '최신 패치 적용']
+  File "C:\Users\Revit007\PycharmProjects\pythonProject\venv\lib\site-packages\pandas\core\frame.py", line 3978, in __setitem__
+    self._set_item(key, value)
+  File "C:\Users\Revit007\PycharmProjects\pythonProject\venv\lib\site-packages\pandas\core\frame.py", line 4172, in _set_item
+    value = self._sanitize_column(value)
+  File "C:\Users\Revit007\PycharmProjects\pythonProject\venv\lib\site-packages\pandas\core\frame.py", line 4912, in _sanitize_column
+    com.require_length_match(value, self.index)
+  File "C:\Users\Revit007\PycharmProjects\pythonProject\venv\lib\site-packages\pandas\core\common.py", line 561, in require_length_match
+    raise ValueError(
+ValueError: Length of values (9) does not match length of index (8)
+```
+- WS-07 데이터가 안나옴
+- : 형식으로 나오는 것 확인 및 수정 필요
