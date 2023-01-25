@@ -6,3 +6,36 @@ An unexpected error occurred:
 requests.exceptions.ConnectionError: HTTPSConnectionPool(host='acmev02.api.letsencrypt.org', port=443): Max retries exceeded with url: /directory (Caused by NewConnectionError('<urllib3.connection.HTTPSConnection object at 0x7f58aa818b80>: Failed to establish a new connection: [Errno -2] Name does not resolve'))
 ```
 - 443 port 개방 필요 
+
+## certificate 등록 가이드대로 진행 시 인증서 오류
+- rsa 암호화 방식으로 인증서 발급 필요
+```
+docker run -it --rm \
+ -v '/root/system-cert:/etc/letsencrypt' \
+ -v '/root/system-cert:/var/lib/letsencrypt' \
+ certbot/certbot certonly -d "*.$APPS_DOMAIN" --manual --preferred-challenges dns --key-type rsa --server https://acme-v02.api.letsencrypt.org/directory --register-unsafely-without-email
+```
+
+## NKS 연동 시 에러
+- json 변환 해당 사이트 참고
+   + http://json.parser.online.fr/
+```
+cf create-service nks 10 nks-sample -c '{
+"name" : "cluster-sample",
+"k8sVersion" : "1.23.9-nks.1",
+"subnetNoList" : "13623",
+"publicNetwork" : true,
+"subnetLbNo" : 13626,
+"loginKeyName" : "ncp-paasta-admin-key",
+"defaultNodePool.name": "dnp-sample",
+"defaultNodePool.nodeCount" : 1,
+"defaultNodePool.productCode" : "SVR.VSVR.STAND.C002.M008.NET.SSD.B050.G002",
+"log.audit" : true,
+"nodePool" : "[{\"name\":\"np-sample\",\"productCode\":\"SVR.VSVR.STAND.C002.M008.NET.SSD.B050.G002\",\"nodeCount\":2}]"
+ }'
+```
+- k8sVersion
+- subnetNoList
+   + 대시보드 subnet(VM 서버)
+- subnetLbNo
+   + 대시보드 subnet 
