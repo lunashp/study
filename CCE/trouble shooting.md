@@ -29,3 +29,33 @@ bosh -e ${BOSH_ENVIRONMENT} -n -d test deploy --no-redact test.yml \
 ```
 - -o operations/cce-check.yml \ 
    + \ 누락
+
+## Linux 파일 겹침으로 인한 에러 (Ref 파일)
+- 기존 코드
+```
+# -*- coding: utf-8 -*-
+import pandas as pd
+import re
+import glob
+
+for filename in glob.glob('test/bosh/Linux*.txt'):
+    f = open(filename, "rt", encoding="UTF-8")
+    txt_list = f.readlines()
+    f.close()
+    data = "".join(txt_list)
+```
+
+- 변경 코드
+```
+# -*- coding: utf-8 -*-
+import pandas as pd
+import re
+import glob
+
+for filename in glob.glob('test/bosh/Linux*[!A-Z].txt'):
+    f = open(filename, "rt", encoding="UTF-8")
+    txt_list = f.readlines()
+    f.close()
+    data = "".join(txt_list)
+```
+- 정규식으로 대문자 제외
