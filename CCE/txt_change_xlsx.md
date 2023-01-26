@@ -482,3 +482,262 @@ ValueError: Length of values (9) does not match length of index (8)
 ```
 - WS-07 데이터가 안나옴
 - : 형식으로 나오는 것 확인 및 수정 필요
+
+# bosh_txt_xlsx.py
+```
+#!/usr/bin/python3
+# -*- coding: utf-8 -*-
+import pandas as pd
+import re
+import glob
+
+for filename in glob.glob('test/bosh/Linux*[!A-Z].txt'):
+    f = open(filename, "rt", encoding="UTF-8")
+    txt_list = f.readlines()
+    f.close()
+    data = "".join(txt_list)
+
+def get_preprocess_li(data):
+    re_id = re.compile(r"\[ID\]: [\S]*\n", re.DOTALL)
+    re_result = re.compile(r"\[Result\]: [\S]*\n", re.DOTALL)
+    re_comment = re.compile(r"\[Comment\]: .*\n", re.DOTALL)
+
+    split_list = data.split("======================================================================================")
+    result_list = []
+    os_version = []
+
+    for sp in split_list:
+        tmp_list = []
+        id_txt = re_id.findall(sp)
+        result_txt = re_result.findall(sp)
+        comment_txt = re_comment.findall(sp)
+        if (id_txt and result_txt and comment_txt):
+            tmp_list.append(id_txt[0][6:-1])
+            tmp_list.append(result_txt[0][10:-1])
+            tmp_list.append(comment_txt[0][10:-1])
+            for line in tmp_list:
+                if 'DISTRIB_ID' in line:
+                    os_version.append(line[153:159])
+                    os_version.append(line[176:181])
+                    lst_str = str(os_version)[1:-1]
+                    tmp_list.append(lst_str)
+            result_list.append(tmp_list)
+    return result_list
+
+
+result_list = get_preprocess_li(data)
+result_df_linux = pd.DataFrame(result_list, columns=["ID", "취약", "진단|가이드 PAGE", "OS(SW)/버전"])
+# result_df.replace(to_replace='Good', value='N', regex=True, inplace=True)
+# result_df.replace({'Good':'N', 'Info':'E', 'Weak':'Y'}, inplace=True)
+result_df_linux.replace(['Good', 'Info', 'Weak'], ['N', 'E', 'Y'], inplace=True)
+
+# 고정값
+result_df_linux["자산명"] = "bosh"
+result_df_linux["호스트명"] = "bosh"
+result_df_linux["진단항목"] = ['root 계정 원격 접속 제한','패스워드 복잡성 설정','계정 잠금 임계값 설정','패스워드 최대 사용 기간 설정','패스워드 파일 보호','root 홈, 패스 디렉터리 권한 및 패스 설정','파일 및 디렉터리 소유자 설정','	/etc/passwd 파일 소유자 및 권한 설정','	/etc/shadow 파일 소유자 및 권한 설정','/etc/hosts 파일 소유자 및 권한 설정',' /etc/(x)inetd.conf 파일 소유자 및 권한 설정','/etc/syslog.conf 파일 소유자 및 권한 설정','	/etc/services 파일 소유자 및 권한 설정','SUID, SGID, Sticky bit 설정 파일 점검','사용자, 시스템 시작파일 및 환경파일 소유자 및 권한 설정','world writable 파일 점검','$HOME/.rhosts, hosts.equiv 사용 금지','접속 IP 및 포트 제한','cron 파일 소유자 및 권한 설정','Finger 서비스 비활성화','Anonymous FTP 비활성화','r 계열 서비스 비활성화','DoS 공격에 취약한 서비스 비활성화','NFS 서비스 비활성화','NFS 접근통제','automountd 제거','RPC 서비스 확인','NIS, NIS+ 점검','tftp, talk 서비스 비활성화','Sendmail 버전 점검','	스팸 메일 릴레이 제한','일반사용자의 Sendmail 실행 방지','DNS 보안 버전 패치','DNS ZoneTransfer 설정','최신 보안패치 및 벤더 권고사항 적용','로그의 정기적 검토 및 보고']
+result_df_linux[" "] = [87, 89, 91, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 108, 110, 111, 112, 113, 114, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128]
+result_df_linux["조치방법"] = " "
+result_df_linux["정상 동작 확인 방법"] = " "
+result_df_linux["조치 확인"] = " "
+result_df_linux["비고"] = " "
+
+
+# 고정값 넣고 컬럼 순서 재정렬
+result_df_linux = result_df_linux[["취약", "자산명", "ID", "호스트명", "OS(SW)/버전", "진단항목", "진단|가이드 PAGE", " ", "조치방법", "정상 동작 확인 방법", "조치 확인", "비고"]]
+
+#########################################################################
+
+for filename in glob.glob('test/bosh/Tomcat*.txt'):
+    f = open(filename, "rt", encoding="UTF-8")
+    txt_list = f.readlines()
+    f.close()
+    data = "".join(txt_list)
+
+def get_preprocess_li(data):
+    re_id = re.compile(r"\[ID\] : [\S]*\n", re.DOTALL)
+    re_result = re.compile(r"\[Result\] : [\S]*\n", re.DOTALL)
+    re_comment = re.compile(r"\[Comment\] : .*\n", re.DOTALL)
+
+    split_list = data.split("======================================================================================")
+    result_list = []
+
+    for sp in split_list:
+        tmp_list = []
+        id_txt = re_id.findall(sp)
+        result_txt = re_result.findall(sp)
+        comment_txt = re_comment.findall(sp)
+        if (id_txt and result_txt and comment_txt):
+            tmp_list.append(id_txt[0][6:-1])
+            tmp_list.append(result_txt[0][10:-1])
+            tmp_list.append(comment_txt[0][10:-1])
+            result_list.append(tmp_list)
+    return result_list
+
+result_list = get_preprocess_li(data)
+result_df_tomcat = pd.DataFrame(result_list, columns=["ID", "취약", "진단|가이드 PAGE"])
+result_df_tomcat.replace([' Good', ' Info', ' Weak'], ['N', 'E', 'Y'], inplace=True)
+
+# 고정값
+result_df_tomcat["자산명"] = "bosh"
+result_df_tomcat["호스트명"] = "bosh"
+result_df_tomcat["진단항목"] = ['Default 관리자 계정명 변경', '취약한 패스워드 사용제한', '	패스워드 파일 권한 관리', '홈디렉터리 쓰기 권한 관리', '환경설정 파일 권한 관리', '디렉터리 리스팅 설정 제한', '로그 파일 주기적 백업', '최신 패치 적용']
+result_df_tomcat[" "] = [284, 286, 287, 289, 290, 292, 294, 295]
+result_df_tomcat["조치방법"] = " "
+result_df_tomcat["정상 동작 확인 방법"] = " "
+result_df_tomcat["조치 확인"] = " "
+result_df_tomcat["비고"] = " "
+result_df_tomcat["OS(SW)/버전"] = "tomcat"
+
+
+# 고정값 넣고 컬럼 순서 재정렬
+result_df_tomcat = result_df_tomcat[["취약", "자산명", "ID", "호스트명", "OS(SW)/버전", "진단항목", "진단|가이드 PAGE", " ", "조치방법", "정상 동작 확인 방법", "조치 확인", "비고"]]
+
+#########################################################################
+
+for filename in glob.glob('test/bosh/LUNA_Nginx*.txt'):
+    f = open(filename, "rt", encoding="UTF-8")
+    txt_list = f.readlines()
+    f.close()
+    data = "".join(txt_list)
+
+def get_preprocess_li(data):
+    re_id = re.compile(r"\[ID\]: [\S]*\n", re.DOTALL)
+    re_result = re.compile(r"\[Result\]: [\S]*\n", re.DOTALL)
+    re_comment = re.compile(r"\[Comment\]:.*\n", re.DOTALL)
+
+    split_list = data.split("======================================================================================")
+    result_list = []
+
+    for sp in split_list:
+        tmp_list = []
+        id_txt = re_id.findall(sp)
+        result_txt = re_result.findall(sp)
+        comment_txt = re_comment.findall(sp)
+        if (id_txt and result_txt and comment_txt):
+            tmp_list.append(id_txt[0][6:-1])
+            tmp_list.append(result_txt[0][10:-1])
+            tmp_list.append(comment_txt[0][10:-1])
+            result_list.append(tmp_list)
+    return result_list
+
+result_list = get_preprocess_li(data)
+result_df_nginx = pd.DataFrame(result_list, columns=["ID", "취약", "진단|가이드 PAGE"])
+result_df_nginx.replace(['Good', 'Info', 'Weak'], ['N', 'E', 'Y'], inplace=True)
+
+# 고정값
+result_df_nginx["자산명"] = "bosh"
+result_df_nginx["호스트명"] = "bosh"
+result_df_nginx["OS(SW)/버전"] = "nginx"
+result_df_nginx["진단항목"] = ['웹 서비스 영역의 분리','불필요한 파일 제거','링크 사용금지','파일 업로드 및 다운로드 제한','디렉터리 리스팅 제거','웹 프로세스 권한 제한','안정화 버전 및 패치 적용']
+result_df_nginx[" "] = [327,328,329,330,331,332,333]
+result_df_nginx["조치방법"] = " "
+result_df_nginx["정상 동작 확인 방법"] = " "
+result_df_nginx["조치 확인"] = " "
+result_df_nginx["비고"] = " "
+
+
+
+# 고정값 넣고 컬럼 순서 재정렬
+result_df_nginx = result_df_nginx[["취약", "자산명", "ID", "호스트명", "OS(SW)/버전", "진단항목", "진단|가이드 PAGE", " ", "조치방법", "정상 동작 확인 방법", "조치 확인", "비고"]]
+
+#########################################################################
+
+for filename in glob.glob('test/bosh/PostgreSQL*.txt'):
+    f = open(filename, "rt", encoding="UTF-8")
+    txt_list = f.readlines()
+    f.close()
+    data = "".join(txt_list)
+
+def get_preprocess_li(data):
+    re_id = re.compile(r"\[ID\]: [\S]*\n", re.DOTALL)
+    re_result = re.compile(r"\[Result\]: [\S]*\n", re.DOTALL)
+    re_comment = re.compile(r"\[Comment\]:.*\n", re.DOTALL)
+
+    split_list = data.split("======================================================================================")
+    result_list = []
+    for sp in split_list:
+        tmp_list = []
+        id_txt = re_id.findall(sp)
+        result_txt = re_result.findall(sp)
+        comment_txt = re_comment.findall(sp)
+        if (id_txt and result_txt and comment_txt):
+            tmp_list.append(id_txt[0][6:-1])
+            tmp_list.append(result_txt[0][10:-1])
+            tmp_list.append(comment_txt[0][10:-1])
+            result_list.append(tmp_list)
+    return result_list
+
+result_list = get_preprocess_li(data)
+result_df_postgresql = pd.DataFrame(result_list, columns=["ID", "취약", "진단|가이드 PAGE"])
+result_df_postgresql.replace(['Good', 'Info', 'Weak'], ['N', 'E', 'Y'], inplace=True)
+
+# 고정값
+result_df_postgresql["자산명"] = "bosh"
+result_df_postgresql["호스트명"] = "bosh"
+result_df_postgresql["OS(SW)/버전"] = "postgresql"
+result_df_postgresql["진단항목"] = ['불필요한 계정 제거','취약한 패스워드 사용제한','불필요한 권한 제거','public schema 사용 제한','IP 접근 제한 설정','안전한 인증 방식 설정','안전한 암호화 알고리즘 사용','데이터 디렉토리 권한 설정','환경 설정파일 권한 설정','로그 활성화','최신 패치 적용']
+result_df_postgresql[" "] = [262,263,264,265,266,267,269,270,271,272,273]
+result_df_postgresql["조치방법"] = " "
+result_df_postgresql["정상 동작 확인 방법"] = " "
+result_df_postgresql["조치 확인"] = " "
+result_df_postgresql["비고"] = " "
+
+
+
+# 고정값 넣고 컬럼 순서 재정렬
+result_df_postgresql = result_df_postgresql[["취약", "자산명", "ID", "호스트명", "OS(SW)/버전", "진단항목", "진단|가이드 PAGE", " ", "조치방법", "정상 동작 확인 방법", "조치 확인", "비고"]]
+
+
+#########################################################################
+
+for filename in glob.glob('test/bosh/LUNA_UAA*.txt'):
+    f = open(filename, "rt", encoding="UTF-8")
+    txt_list = f.readlines()
+    f.close()
+    data = "".join(txt_list)
+
+def get_preprocess_li(data):
+    re_id = re.compile(r"\[ID\]: [\S]*\n", re.DOTALL)
+    re_result = re.compile(r"\[Result\]: [\S]*\n", re.DOTALL)
+    re_comment = re.compile(r"\[Comment\]:.*\n", re.DOTALL)
+
+    split_list = data.split("======================================================================================")
+    result_list = []
+    for sp in split_list:
+        tmp_list = []
+        id_txt = re_id.findall(sp)
+        result_txt = re_result.findall(sp)
+        comment_txt = re_comment.findall(sp)
+        if (id_txt and result_txt and comment_txt):
+            tmp_list.append(id_txt[0][6:-1])
+            tmp_list.append(result_txt[0][10:-1])
+            tmp_list.append(comment_txt[0][10:-1])
+            result_list.append(tmp_list)
+    return result_list
+
+result_list = get_preprocess_li(data)
+result_df_uaa = pd.DataFrame(result_list, columns=["ID", "취약", "진단|가이드 PAGE"])
+result_df_uaa.replace(['Good', 'Info', 'Weak'], ['N', 'E', 'Y'], inplace=True)
+
+# 고정값
+result_df_uaa["자산명"] = "bosh"
+result_df_uaa["호스트명"] = "bosh"
+result_df_uaa["OS(SW)/버전"] = "uaa"
+result_df_uaa["진단항목"] = ['계정 잠금 임계값 설정','패스워드 복잡도 설정','세션 타임아웃 설정','https 사용 여부 확인','로그 설정','최신 패치 적용']
+result_df_uaa[" "] = [3,4,6,7,8,9]
+result_df_uaa["조치방법"] = " "
+result_df_uaa["정상 동작 확인 방법"] = " "
+result_df_uaa["조치 확인"] = " "
+result_df_uaa["비고"] = " "
+
+# 고정값 넣고 컬럼 순서 재정렬
+result_df_uaa = result_df_uaa[["취약", "자산명", "ID", "호스트명", "OS(SW)/버전", "진단항목", "진단|가이드 PAGE", " ", "조치방법", "정상 동작 확인 방법", "조치 확인", "비고"]]
+
+# 다중시트
+with pd.ExcelWriter("bosh.xlsx") as writer:
+    result_df_linux.to_excel(writer, sheet_name="CCE-linux")
+    result_df_tomcat.to_excel(writer, sheet_name="CCE-tomcat")
+    result_df_nginx.to_excel(writer, sheet_name="CCE-nginx")
+    result_df_postgresql.to_excel(writer, sheet_name="CCE-postgresql")
+    result_df_uaa.to_excel(writer, sheet_name="CCE-UAA")
+```
