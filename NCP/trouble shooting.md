@@ -9,6 +9,15 @@ requests.exceptions.ConnectionError: HTTPSConnectionPool(host='acmev02.api.letse
 
 ## certificate 등록 가이드대로 진행 시 인증서 오류
 - rsa 암호화 방식으로 인증서 발급 필요
+
+### ncp guide version
+```
+$ docker run -it --rm \
+ -v '/root/system-cert:/etc/letsencrypt' \
+ -v '/root/system-cert:/var/lib/letsencrypt' \
+ certbot/certbot certonly -d "*.$APPS_DOMAIN"" --manual --preferred-challenges dns --server https://acme-v02.api.letsencrypt.org/directory --register-unsafely-without-email
+```
+### rsa 인증서 적용 version
 ```
 docker run -it --rm \
  -v '/root/system-cert:/etc/letsencrypt' \
