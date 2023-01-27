@@ -45,7 +45,8 @@ for filename in glob.glob('test/bosh/Linux*.txt'):
     data = "".join(txt_list)
 ```
 
-- 변경 코드
+### 변경 코드 1
+- 해당 코드 shell 에서 erorr
 ```
 # -*- coding: utf-8 -*-
 import pandas as pd
@@ -59,3 +60,18 @@ for filename in glob.glob('test/bosh/Linux*[!A-Z].txt'):
     data = "".join(txt_list)
 ```
 - 정규식으로 대문자 제외
+
+### 변경 코드 2 
+```
+# -*- coding: utf-8 -*-
+import pandas as pd
+import re
+import glob
+
+for filename in glob.glob('./Linux*[!Ref].txt'):
+    f = open(filename, "rt", encoding="UTF-8")
+    txt_list = f.readlines()
+    f.close()
+    data = "".join(txt_list)
+```
+- Ref 파일 제외
