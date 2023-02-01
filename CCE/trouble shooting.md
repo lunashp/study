@@ -75,3 +75,20 @@ for filename in glob.glob('./Linux*[!Ref].txt'):
     data = "".join(txt_list)
 ```
 - Ref 파일 제외
+
+## cce-check release 포함 배포 중 에러
+```
+Task 497
+
+Task 497 | 06:13:22 | Error: Colocated job 'cce-service' is already added to the instance group 'uaa'
+
+Task 497 Started  Tue Jan 31 06:13:22 UTC 2023
+Task 497 Finished Tue Jan 31 06:13:22 UTC 2023
+Task 497 Duration 00:00:00
+Task 497 error
+
+Updating deployment:
+  Expected task '497' to succeed but state is 'error'
+
+Exit code 1
+```
