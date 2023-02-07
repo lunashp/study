@@ -482,6 +482,7 @@ ValueError: Length of values (9) does not match length of index (8)
 ```
 - WS-07 데이터가 안나옴
 - : 형식으로 나오는 것 확인 및 수정 필요
+- ValueError: Length of values (7) does not match length of index (8) 에러 확인 필요 
 
 # bosh_txt_xlsx.py
 ```
