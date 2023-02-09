@@ -92,3 +92,174 @@ Updating deployment:
 
 Exit code 1
 ```
+- uaa 가 중복되어 선언되어 있음
+
+### 기존 코드
+```
+ubuntu@ubuntu:~/workspace/paasta-deployment/paasta/operations$ cat cce-check.yml 
+---
+- type: replace
+  path: /releases/-
+  value:
+    name: cce-check
+    url: file:///home/ubuntu/workspace/cce-check/release/cce-check-0.1.0.tgz
+    version: 0.1.0
+
+#########################################################
+### paasta 
+#########################################################
+- type: replace
+  path: /instance_groups/name=uaa/jobs/-
+  value:
+    name: cce-service
+    release: cce-check
+    properties:
+      cce_scripts:
+        - script_name: tomcat_v4.1.bin
+          params: |
+            /var/vcap/data/uaa/tomcat
+            /var/vcap/data/uaa/tomcat/conf
+            /var/vcap/data/uaa/tomcat/webapps
+          env_variable: "export JRE_HOME=/var/vcap/packages/uaa/jdk"
+
+### database :: mysql 인 경우
+#- type: replace
+#  path: /instance_groups/name=database/jobs/-
+#  value:
+#    name: cce-service
+#    release: cce-check
+#    properties:
+#      cce_scripts:
+#        - script_name: mysql_5.7_v4.1_PaaS-TA.bin
+#          params: |
+#            /var/vcap/packages/pxc/bin/mysql
+#            /var/vcap/jobs/pxc-mysql/config/my.cnf
+#            /var/vcap/sys/run/pxc-mysql/mysqld.sock
+#            1
+#            localhost
+#            root/((cf_mysql_mysql_admin_password))
+
+### database :: postgres 인경우
+- type: replace
+  path: /instance_groups/name=database/jobs/-
+  value:
+    name: cce-service
+    release: cce-check
+    properties:
+      cce_scripts:
+        - script_name: postgresql_v4.1.bin
+          params: |
+            /var/vcap/packages/postgres-11.10/bin
+            /var/vcap/store/postgres/postgres-11.10
+            127.0.0.1
+            cloud_controller
+            5524
+            vcap
+
+
+- type: replace
+  path: /instance_groups/name=api/jobs/-
+  value:
+    name: cce-service
+    release: cce-check
+    properties:
+      cce_scripts:
+        - script_name: nginx.sh
+
+
+#- type: replace
+#  path: /instance_groups/name=uaa/jobs/-
+#  value:
+#    name: cce-service
+#    release: cce-check
+#    properties:
+#      cce_scripts:
+#        - script_name: uaa.sh
+
+```
+
+### 변경 코드
+```
+ubuntu@ubuntu:~/workspace/paasta-deployment/paasta/operations$ cat cce-check.yml 
+---
+- type: replace
+  path: /releases/-
+  value:
+    name: cce-check
+    url: file:///home/ubuntu/workspace/cce-check/release/cce-check-0.1.0.tgz
+    version: 0.1.0
+
+#########################################################
+### paasta 
+#########################################################
+- type: replace
+  path: /instance_groups/name=uaa/jobs/-
+  value:
+    name: cce-service
+    release: cce-check
+    properties:
+      cce_scripts:
+        - script_name: tomcat_v4.1.bin
+          params: |
+            /var/vcap/data/uaa/tomcat
+            /var/vcap/data/uaa/tomcat/conf
+            /var/vcap/data/uaa/tomcat/webapps
+          env_variable: "export JRE_HOME=/var/vcap/packages/uaa/jdk"
+        - script_name: uaa.sh
+
+### database :: mysql 인 경우
+#- type: replace
+#  path: /instance_groups/name=database/jobs/-
+#  value:
+#    name: cce-service
+#    release: cce-check
+#    properties:
+#      cce_scripts:
+#        - script_name: mysql_5.7_v4.1_PaaS-TA.bin
+#          params: |
+#            /var/vcap/packages/pxc/bin/mysql
+#            /var/vcap/jobs/pxc-mysql/config/my.cnf
+#            /var/vcap/sys/run/pxc-mysql/mysqld.sock
+#            1
+#            localhost
+#            root/((cf_mysql_mysql_admin_password))
+
+### database :: postgres 인경우
+- type: replace
+  path: /instance_groups/name=database/jobs/-
+  value:
+    name: cce-service
+    release: cce-check
+    properties:
+      cce_scripts:
+        - script_name: postgresql_v4.1.bin
+          params: |
+            /var/vcap/packages/postgres-11.10/bin
+            /var/vcap/store/postgres/postgres-11.10
+            127.0.0.1
+            cloud_controller
+            5524
+            vcap
+
+
+- type: replace
+  path: /instance_groups/name=api/jobs/-
+  value:
+    name: cce-service
+    release: cce-check
+    properties:
+      cce_scripts:
+        - script_name: nginx.sh
+
+
+#- type: replace
+#  path: /instance_groups/name=uaa/jobs/-
+#  value:
+#    name: cce-service
+#    release: cce-check
+#    properties:
+#      cce_scripts:
+#        - script_name: uaa.sh
+
+```
+- `script_name: uaa.sh` 를 병렬로 선언
