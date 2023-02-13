@@ -10,3 +10,5 @@ fatal: not a git repository (or any of the parent directories): .git
 $ git init
 $ git remote add origin {GitHub주소}
 ```
+- 저장소 확인
+   + git remote -v 
