@@ -742,3 +742,17 @@ with pd.ExcelWriter("bosh.xlsx") as writer:
     result_df_postgresql.to_excel(writer, sheet_name="CCE-postgresql")
     result_df_uaa.to_excel(writer, sheet_name="CCE-UAA")
 ```
+
+## python_be 파일 수정
+```
+#!/bin/sh
+  
+sleep 5
+sudo chmod 777 /tmp
+sudo apt-get update
+
+sudo apt-get install -y python3-pip; sudo apt-get install -y python3-pip --fix-missing; sudo python3 -m pip install pandas; sudo python3 -m pip install openpyxl
+
+sleep 3
+chmod o-w /tmp
+```
