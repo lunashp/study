@@ -53,6 +53,9 @@ Deploying:
 Exit code 1
 
 ```
+- home 에서 배포 시 파일 안지우고 재배포시 적용됨
+- 다 날리고 하면 적용 안됨
+  + 확인 필요
 #### # bosh/0:/var/vcap/jobs/cce-bosh/scripts# vim cce.sh
 ```
 #!/bin/bash
