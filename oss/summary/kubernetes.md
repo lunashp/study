@@ -142,8 +142,31 @@ kubectl [command] [TYPE] [NAME] [flags]
    + https://kubernetes.io/docs/tasks/configure-pod-container/assign-cpu-resource/
 
    ---
+ 
+## ReplicationController
+- 요구하는 Pod의 개수를 보장하며 파드 집합의 실행을 항상 안정적으로 유지하는 것을 목표
+   + 요구하는 Pod의 개수가 부족하면 template을 이용해 Pod를 추가
+   + 요구하는 Pod 수보다 많으면 최근에 생성된 Pod를 삭제
+- 기본구성
+   + selector
+   + replicas
+   + template
+```
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: <RC_이름>
+spec:
+  replicas: <배포개수>   
+  selector:
+    key: value
+  template:
+    <컨테이너 템플릿>
+    ...
+```  
 
-   
+
+
 
 
 
