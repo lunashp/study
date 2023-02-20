@@ -54,3 +54,7 @@ bosh -e ${BOSH_ENVIRONMENT} -d paasta -n interpolate paasta-deployment.yml \
         -o operations/cce.yml \
 	-o operations/cce-check.yml
 ```
+
+## stemcell 삭제 
+- bosh delete-stemcell {stemcell name/version}
+
