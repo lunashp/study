@@ -39,3 +39,35 @@ $ ubuntu@ubuntu:~/workspace/paasta-deployment/bosh$ vim deploy-vsphere.sh
         -l vsphere-vars.yml
 ```
 - -o vsphere/resource-pool.yml  \ 삭제
+
+$ ubuntu@ubuntu:~/workspace/paasta-deployment/bosh$ vim deploy-vsphere.sh
+```
+#!/bin/bash
+  
+BOSH_ENVIRONMENT="${BOSH_ENVIRONMENT}"                   # bosh director alias name 
+
+bosh -e ${BOSH_ENVIRONMENT} -d paasta -n deploy paasta-deployment.yml \
+        -o operations/use-haproxy.yml \
+        -o operations/use-haproxy-public-network-vsphere.yml \
+        -o operations/rename-network-and-deployment.yml \
+        -l vars.yml \
+        -l ../../common/common_vars.yml \
+        -o operations/cce.yml \
+        -o operations/cce-check.yml
+```
+
+ubuntu@ubuntu:~/workspace/paasta-deployment/paasta$ vim vars.yml
+```
+# SERVICE VARIABLE
+deployment_name: "paasta"               # Deployment Name
+network_name: "default"                 #
+J꽊~T Default Network Name
+haproxy_public_ip: "10.0.20.50" # 
+~Z~T)
+haproxy_public_network_name: "proxy"    # PaaS-TA Public Network Name
+haproxy_private_network_name: "default" # PaaS-TA Private Network Name (vSphere use-haproxy-public-network-vsphere.yml
+```
+- 수정한 cloud-config에 맞게 파일 설정
+        + haproxy_public_network_name: "proxy"
+        + haproxy_private_network_name: "default"
+
