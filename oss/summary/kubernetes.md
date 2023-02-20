@@ -105,3 +105,35 @@
 
 ### 클러스터-레벨 로깅
 - 클러스터-레벨 로깅 메커니즘은 검색/열람 인터페이스와 함께 중앙 로그 저장소에 컨테이너 로그를 저장하는 책임을 짐
+
+--- 
+
+## kubectl 명령어 기본 구조
+```
+kubectl [command] [TYPE] [NAME] [flags]
+```
+- command: 자원(object)에 실행할 명령
+   + create, delete, edit ...
+- TYPE: 자원의 타입
+   + node, pod, service
+- NAME: 자원의 이름
+- flags: 부가적으로 설정할 옵션
+   + --help, -o options
+
+---
+
+## static container
+- API 서버 없이 특정 노드에 있는 kubelet 데몬에 의해 직접 관리
+- etc/kubernetes/manifests/ 디렉토리에 k8s yaml 파일을 저장 시 적용됨
+- static pod 디렉토리 구성
+   + #vi /var/lib/kubelet/config.yaml
+   + staticPodPath: /etc/kubernetes/manifests
+- 디렉토리 수정 시 kubelet 데몬 재실행
+   + #systemctl restart kubelet
+
+
+
+
+
+
+
