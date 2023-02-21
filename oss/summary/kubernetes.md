@@ -165,6 +165,36 @@ spec:
     ...
 ```  
 
+## ReplicaSet
+- ReplicationController와 같은 역할을 하는 컨트롤러
+- ReplicationController 보다 풍부한 selector
+```
+  selector:
+    matchLabels:
+      component: redis
+    matchExpressions:
+      - {key: tier, operator: In, values: [cache]}
+      - {key: environment, operator: NotIn, values: [dev]}
+```
+- matchExpressions 연산자 
+   + In: key와 values를 지정하여 key, value가 일치하는 Pod만 연결
+   + NotIn: key는 일치하고 value는 일치하지 않는 Pod에 연결
+   + Exists: key에 맞는 label의 pod를 연결
+   + DoesNotExist: key와 다른 label의 pod를 연결 
+
+## Deployment
+   - ReplicaSet을 컨트롤해서 Pod수를 조절
+   - Rolling Update & Rolling Back
+      + `rolling update: 파드 인스턴스를 점진적으로 새로운 것으로 업데이트 하여 디플로이먼트 업데이트가 서비스 중단 없이 이루어질 수 있도록 해줌`
+
+>#### POD 이름
+> - pod api를 실행시 pod이름 사용
+> - deploy, rc를 통해 pod 실행시 deploy/rc이름 사용
+>#### Labels: 는 별도로 pod를 분류하고 관리할 목적으로 사용
+
+## DaemonSet
+- 전체 노드에서 Pod가 한 개씩 실행되도록 보장
+- 로그 수입기, 모니터링 에이전트와 같은 프로그램 실행 시 적용
 
 
 
