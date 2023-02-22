@@ -141,7 +141,7 @@ kubectl [command] [TYPE] [NAME] [flags]
    + Memory limit을 초과해서 사용되는 파드는 종료(OOM Kill)되며 다시 스케줄링 됨
    + https://kubernetes.io/docs/tasks/configure-pod-container/assign-cpu-resource/
 
-   ---
+---
  
 ## ReplicationController
 - 요구하는 Pod의 개수를 보장하며 파드 집합의 실행을 항상 안정적으로 유지하는 것을 목표
@@ -196,11 +196,33 @@ spec:
 - 전체 노드에서 Pod가 한 개씩 실행되도록 보장
 - 로그 수입기, 모니터링 에이전트와 같은 프로그램 실행 시 적용
 
+## Job
+- Kubernetes는 Pod를 running 중인 상태로 유지
+- Batch 처리하는 Pod는 작업이 완료되면 종료됨
+- Batch 처리에 적합한 컨트롤러로 Pod의 성공적인 완료를 보장
+   + 비정상 종료 시 다시 실행
+   + 정상 종료 시 완료
+      - completions: 실행해야 할 job의 수가 몇 개인지 지정
+      - parallelism: 병렬성, 동시 running 되는 pod 수
+      - activeDeadlineSeconds: 지정 시간 내에 Job을 완료
 
-
-
-
-
-
-
-
+## CronJob
+- job 컨트롤러로 실행할 Application Pod를 주기적으로 반복해서 실행
+- Linux의 cronjob의 스케줄링 기능을 Job Controller에 추가한 API
+- 다음과 같은 반복해서 실행하는 Job을 운영해야 할 때 사용
+   + Data Backup
+   + Send email
+   + cleaning tasks
+- Cronjob Schedule: "0 3 1 * *"
+   + Minutes (from 0 to 59)
+   + Hours (from 0 to 23)
+   + Day of month (from 1 to 31)
+   + Month (from 1 to 12)
+   + Day of the week (from 0 to 6)
+      - 매월 1일 9시 정각에 job 실행: 0 9 1 * * 
+      - 매주 일요일 3시에 job 실행: 0 3 * * 0
+      - 주중 3시에 job 실행: 0 3 * * 1-5
+      - 주말 3시에 job 실행: 0 3 * * 0,6
+      - job을 5분에 한 번씩 실행: */5 * * * *
+         + job을 1분에 한 번씩 실행: * * * * *  
+      - job을 2시간에 한 번씩 실행: 0 */2 * * * 
