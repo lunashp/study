@@ -226,3 +226,64 @@ spec:
       - job을 5분에 한 번씩 실행: */5 * * * *
          + job을 1분에 한 번씩 실행: * * * * *  
       - job을 2시간에 한 번씩 실행: 0 */2 * * * 
+
+---
+
+## Kubernetes Service
+- 동일한 서비스를 제공하는 Pod 그룹의 단일 진입점을 제공
+
+## Service type
+- 4가지 Type 지원
+   + ClusterIP(default)
+      - Pod 가룹의 단일 진입점(Virtual IP) 생성
+   + NodePort
+      - ClusterIP가 생성된 후 
+      - 모든 Worker Node에 외부에서 접속 가능한 포트가 예약
+   + LoadBalancer
+      - 클라우드 인프라스트럭처(AWS, Auzer, GCP 등)나 오픈스택 클라우드에 적용
+      - LoadBalancer를 자동으로 프로 비전하는 기능 지원
+   + ExternalName
+      - 클러스터 안에서 외부에 접속 시 사용할 도메인을 등록해서 사용
+      - 클러스터 도메인이 실제 외부 도메인으로 치환되어 동작 
+
+### ClusterIP
+- selector의 label이 동일한 파드들의 그룹으로 묶어 단일 진입점(Virtual IP)을 생성
+- 클러스터 내부에서만 사용 가능
+- type 생략시 default 값으로 10.96.0.0/12 범위에서 할당됨
+   + `고정시키지 않는 이유: 충돌을 예방하기 위해`
+
+### NodePort
+- 모든 노드를 대상으로 외부 접속 가능한 포트를 예약
+- Default NodePort 범위: 30000-32767
+- ClusterIP를 생성 후 NodePort를 예약
+
+### LoadBalancer
+- Public 클라우드(AWS, Azure, GCP 등)에서 운영가능
+- LoadBalancer를 자동으로 구성 요청
+- NodePort를 예약 후 해당 nodeport로 외부 접근을 허용
+
+### ExternalName
+- 클러스터 내부에서 External(외부)의 도메인을 설정
+
+### Headless Service
+- ClusterIP가 없는 서비스로 단일 진입점이 필요 없을 때 사용
+- Service와 연결된 Pod의 endpoint로 DNS 레코드가 생성됨
+- Pod의 DNS 주소: pod-ip-addr.namespace.pod.cluster.local
+
+## kube-proxy
+- Kubernetes Service의 backend 구현
+- endpotin 연결을 위한 iptables 구성
+- nodePort로의 접근과 Pod 연결을 구현(iptables 구성)
+
+### kube-proxy-mode
+- userspace
+   + 클라이언트의 서비스 요청을 iptables를 거쳐 kube-proxy가 받아서 연결
+   + kubernetes 초기버전에 잠깐 사용
+- iptables
+   + default kubernetes network mode
+   + kube-proxy는 service API 요청 시 iptables rule이 생성
+   + 크라이언트 연결은 kube-proxy가 받아서 iptables 룰을 통해 연결
+- IPVS
+   + 리눅스 커널이 지원하는 L4 로드밸런싱 기술을 이용
+   + 별도의 ipvs 지원 모듈을 설정한 후 적용 가능
+   + 지원 알고리즘: rr(round-robin), lc(least connection), dh(destination hashing), sh(source hashing), sed(shortest expected delay), nc(net queue)
