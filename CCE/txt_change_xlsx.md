@@ -756,3 +756,6 @@ sudo apt-get install -y python3-pip; sudo apt-get install -y python3-pip --fix-m
 sleep 3
 chmod o-w /tmp
 ```
+
+- nginx 파일 수정 필요
+    + ap core api 동작, singleton-blobstore 비동작
