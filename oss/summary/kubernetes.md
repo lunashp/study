@@ -287,3 +287,14 @@ spec:
    + 리눅스 커널이 지원하는 L4 로드밸런싱 기술을 이용
    + 별도의 ipvs 지원 모듈을 설정한 후 적용 가능
    + 지원 알고리즘: rr(round-robin), lc(least connection), dh(destination hashing), sh(source hashing), sed(shortest expected delay), nc(net queue)
+
+   ---
+
+   ## Kubernetes Ingress
+   - HTTP나 HTTPS를 통해 클러스터 내부의 서비슬르 외부로 노출
+   - Service에 외부 URL을 제공
+   - 트래픽을 로드밸런싱
+   - SSL 인증서 처리
+   - Virtual hosting을 지정
+
+<img src="https://d33wubrfki0l68.cloudfront.net/91ace4ec5dd0260386e71960638243cf902f8206/c3c52/docs/images/ingress.svg">
