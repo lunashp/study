@@ -291,10 +291,44 @@ spec:
    ---
 
    ## Kubernetes Ingress
-   - HTTP나 HTTPS를 통해 클러스터 내부의 서비슬르 외부로 노출
+   - HTTP나 HTTPS를 통해 클러스터 내부의 서비스를 외부로 노출
    - Service에 외부 URL을 제공
    - 트래픽을 로드밸런싱
    - SSL 인증서 처리
    - Virtual hosting을 지정
 
 <img src="https://d33wubrfki0l68.cloudfront.net/91ace4ec5dd0260386e71960638243cf902f8206/c3c52/docs/images/ingress.svg">
+
+## Label
+- Node를 포함하여 pod, deployment 등 모든 리소스에 할당
+- 리소스의 특성을 분류하고, Selector를 이용해서 선택
+- Key-value 한 쌍으로 적용
+- https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
+
+```
+# label 명이 같은 pod를 출력
+$ kubectl get pods -l name = [label 명]
+
+# 이미 존재하는 label 위에 덮어쓰기
+$ --ovewrite
+
+# label 삭제
+$ label 명 뒤에 - (대시문자)
+```
+- Lable 보기
+   + kubectl ge pods --show-labels
+   + kubectl get pods -l <label_name>
+
+- Label 관리: kubectl label --help
+   + Label 생성 및 변경
+      - kubectl label pod <name> key=value
+      - kubectl label pod <name> key=value --overwrite
+   + Label 확인
+      - kubectl label pod <name> --show-labels
+   + Label 제거
+      - kubectl label pod <name> key-
+
+### Node Label 
+- Worker Node의 특성을 Label로 설정
+   + kubectl label nodes <노드 이름> <레이블 키> = <레이블 값>
+ -노드를 선택해서 파드를 배치할 수 있음  
