@@ -75,20 +75,18 @@ import java.util.Scanner;
 public class Main {
 
     public static void main(String[] args) {
-        Scanner in = new Scanner(System.in);
+        Scanner sc = new Scanner(System.in);
 
-        int x = in.nextInt();
-        int y = in.nextInt();
-        int w = in.nextInt();
-        int h = in.nextInt();
+        int x = sc.nextInt();
+        int y = sc.nextInt();
+        int w = sc.nextInt();
+        int h = sc.nextInt();
 
         int x_min = Math.min(x, w-x);
         int y_min = Math.min(y, h-y);
 
-
         System.out.println(Math.min(x_min, y_min));
     }
-
 }
 ```
 
@@ -99,9 +97,9 @@ import java.util.Scanner;
 public class Main {
 
     public static void main(String[] args) {
-        Scanner in = new Scanner(System.in);
+        Scanner sc = new Scanner(System.in);
 
-        int x = in.nextInt();
+        int x = sc.nextInt();
 
         for (int i=1; i<=9; i=i+1){
             System.out.println(x + " * " + i + " = " + x * i );
