@@ -332,3 +332,254 @@ $ label 명 뒤에 - (대시문자)
 - Worker Node의 특성을 Label로 설정
    + kubectl label nodes <노드 이름> <레이블 키> = <레이블 값>
  -노드를 선택해서 파드를 배치할 수 있음  
+---
+
+<br/>
+ 
+
+# kubernetes 설치
+## 1. docker 설치
+ > master node와 worker node에서 실행
+
+### 1.1. package index 업데이트
+```
+# apt update
+```
+
+### 1.2. package dependencies 설치
+```
+# apt install -y apt-transport-https ca-certificates curl gnupg lsb-release
+```
+
+### 1.3. doocker official GPG key 내려받기
+```
+# curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+```
+
+### 1.4. packages repository 설정 및 package index 업데이트
+```
+# echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+# apt update
+```
+### 1.5. 설치 가능한 docker 버전 조회
+```
+# apt-cache madison docker-ce
+
+---
+ docker-ce | 5:23.0.1-1~ubuntu.18.04~bionic | https://download.docker.com/linux/ubuntu bionic/stable amd64 Packages
+ docker-ce | 5:23.0.0-1~ubuntu.18.04~bionic | https://download.docker.com/linux/ubuntu bionic/stable amd64 Packages
+ docker-ce | 5:20.10.23~3-0~ubuntu-bionic | https://download.docker.com/linux/ubuntu bionic/stable amd64 Packages
+ docker-ce | 5:20.10.22~3-0~ubuntu-bionic | https://download.docker.com/linux/ubuntu bionic/stable amd64 Packages
+ docker-ce | 5:20.10.21~3-0~ubuntu-bionic | https://download.docker.com/linux/ubuntu bionic/stable amd64 Packages
+ docker-ce | 5:20.10.20~3-0~ubuntu-bionic | https://download.docker.com/linux/ubuntu bionic/stable amd64 Packages
+ docker-ce | 5:20.10.19~3-0~ubuntu-bionic | https://download.docker.com/linux/ubuntu bionic/stable amd64 Packages
+ docker-ce | 5:20.10.18~3-0~ubuntu-bionic | https://download.docker.com/linux/ubuntu bionic/stable amd64 Packages
+ docker-ce | 5:20.10.17~3-0~ubuntu-bionic | https://download.docker.com/linux/ubuntu bionic/stable amd64 Packages
+ docker-ce | 5:20.10.16~3-0~ubuntu-bionic | https://download.docker.com/linux/ubuntu bionic/stable amd64 Packages
+ docker-ce | 5:20.10.15~3-0~ubuntu-bionic | https://download.docker.com/linux/ubuntu bionic/stable amd64 Packages
+ docker-ce | 5:20.10.14~3-0~ubuntu-bionic | https://download.docker.com/linux/ubuntu bionic/stable amd64 Packages
+ docker-ce | 5:20.10.13~3-0~ubuntu-bionic | https://download.docker.com/linux/ubuntu bionic/stable amd64 Packages
+ docker-ce | 5:20.10.12~3-0~ubuntu-bionic | https://download.docker.com/linux/ubuntu bionic/stable amd64 Packages
+ docker-ce | 5:20.10.11~3-0~ubuntu-bionic | https://download.docker.com/linux/ubuntu bionic/stable amd64 Packages
+ docker-ce | 5:20.10.10~3-0~ubuntu-bionic | https://download.docker.com/linux/ubuntu bionic/stable amd64 Packages
+ docker-ce | 5:20.10.9~3-0~ubuntu-bionic | https://download.docker.com/linux/ubuntu bionic/stable amd64 Packages
+ docker-ce | 5:20.10.8~3-0~ubuntu-bionic | https://download.docker.com/linux/ubuntu bionic/stable amd64 Packages
+ docker-ce | 5:20.10.7~3-0~ubuntu-bionic | https://download.docker.com/linux/ubuntu bionic/stable amd64 Packages
+ docker-ce | 5:20.10.6~3-0~ubuntu-bionic | https://download.docker.com/linux/ubuntu bionic/stable amd64 Packages
+ docker-ce | 5:20.10.5~3-0~ubuntu-bionic | https://download.docker.com/linux/ubuntu bionic/stable amd64 Packages
+ docker-ce | 5:20.10.4~3-0~ubuntu-bionic | https://download.docker.com/linux/ubuntu bionic/stable amd64 Packages
+ docker-ce | 5:20.10.3~3-0~ubuntu-bionic | https://download.docker.com/linux/ubuntu bionic/stable amd64 Packages
+ docker-ce | 5:20.10.2~3-0~ubuntu-bionic | https://download.docker.com/linux/ubuntu bionic/stable amd64 Packages
+...
+
+```
+
+### 1.6. docker 엔진(engine) 설치
+```
+# apt install -y docker-ce=5:23.0.1-1~ubuntu.18.04~bionic docker-ce-cli=5:23.0.1-1~ubuntu.18.04~bionic containerd.io
+```
+
+### 1.7. docker 설치 확인
+#### 1.7.1. docker 테스트 이미지(image) 실행
+```
+# docker run hello-world
+```
+
+#### 1.7.2. docker container 목록 조회
+```
+# docker ps -a
+CONTAINER ID   IMAGE         COMMAND    CREATED         STATUS                     PORTS     NAMES
+c99c288f08f5   hello-world   "/hello"   6 seconds ago   Exited (0) 5 seconds ago             affectionate_rhodes
+```
+
+#### 1.7.3. docker 버전 확인
+```
+# docker -v
+Docker version 23.0.1, build a5ee5b1
+```
+
+## 2. package로 kubeadm, kubelet, kubectl 설치
+
+### 2.1. package index 업데이트
+```
+# apt update
+```
+
+### 2.2. package dependencies 설치
+```
+# apt install -y apt-transport-https ca-certificates curl
+```
+### 2.3. Google Cloud public signing key 내려받기
+```
+# curl -fsSLo /usr/share/keyrings/kubernetes-archive-keyring.gpg https://packages.cloud.google.com/apt/doc/apt-key.gpg
+```
+
+### 2.4. packages repository 설정 및 package index 업데이트
+```
+# echo "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | tee /etc/apt/sources.list.d/kubernetes.list
+# apt update
+```
+
+### 2.5. kubelet, kubeadm, kubectl 설치
+```
+# apt install -y kubelet kubeadm kubectl
+```
+
+### 2.6. kubelet, kubeadm, kubectl 버전 유지 설정
+```
+# apt-mark hold kubelet kubeadm kubectl
+```
+
+### 2.7. kubelet, kubeadm, kubectl 설치 확인
+#### 2.7.1. kubelet 버전 확인Permalink
+```
+# kubelet --version
+Kubernetes v1.26.2
+```
+
+#### 2.7.2. kubeadm 버전 확인Permalink
+```
+# kubeadm version
+kubeadm version: &version.Info{Major:"1", Minor:"26", GitVersion:"v1.26.2", GitCommit:"fc04e732bb3e7198d2fa44efa5457c7c6f8c0f5b", GitTreeState:"clean", BuildDate:"2023-02-22T13:37:39Z", GoVersion:"go1.19.6", Compiler:"gc", Platform:"linux/amd64"}
+```
+
+#### 2.7.3. kubectl 버전 확인
+```
+# kubectl version
+WARNING: This version information is deprecated and will be replaced with the output from kubectl version --short.  Use --output=yaml|json to get the full version.
+Client Version: version.Info{Major:"1", Minor:"26", GitVersion:"v1.26.2", GitCommit:"fc04e732bb3e7198d2fa44efa5457c7c6f8c0f5b", GitTreeState:"clean", BuildDate:"2023-02-22T13:39:03Z", GoVersion:"go1.19.6", Compiler:"gc", Platform:"linux/amd64"}
+Kustomize Version: v4.5.7
+The connection to the server localhost:8080 was refused - did you specify the right host or port?
+```
+
+### systemd를 cgroup driver로 사용
+```
+# vi /etc/containerd/config.toml
+---
+
+[plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc]
+  ...
+  [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc.options]
+    SystemdCgroup = true
+```
+
+## 3. master node에 kubeadm 설치
+> master에서 실행
+
+### 3.1. Master node 초기화
+- Master node의 private ip 입력
+```
+# ifconfig
+# sudo kubeadm init \
+> --apiserver-cert-extra-sans=10.0.30.16 \
+> --control-plane-endpoint=10.0.30.16
+```
+
+#### 3.1.1 실행 결과
+```
+Your Kubernetes control-plane has initialized successfully!
+
+To start using your cluster, you need to run the following as a regular user:
+
+  mkdir -p $HOME/.kube
+  sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+  sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+Alternatively, if you are the root user, you can run:
+
+  export KUBECONFIG=/etc/kubernetes/admin.conf
+
+You should now deploy a pod network to the cluster.
+Run "kubectl apply -f [podnetwork].yaml" with one of the options listed at:
+  https://kubernetes.io/docs/concepts/cluster-administration/addons/
+
+You can now join any number of control-plane nodes by copying certificate authorities
+and service account keys on each node and then running the following as root:
+
+  kubeadm join 10.0.30.16:6443 --token iz4jrg.i44kw4bduuybju2g \
+	--discovery-token-ca-cert-hash sha256:ff41f2f0b8a9fa26328f7c484f6e2d605ddc9b57880d78ca299933f5aac807aa \
+	--control-plane 
+
+Then you can join any number of worker nodes by running the following on each as root:
+
+kubeadm join 10.0.30.16:6443 --token iz4jrg.i44kw4bduuybju2g \
+	--discovery-token-ca-cert-hash sha256:ff41f2f0b8a9fa26328f7c484f6e2d605ddc9b57880d78ca299933f5aac807aa 
+```
+- kubeadm join 10.0.30.16:6443 --token iz4jrg.i44kw4bduuybju2g \
+	--discovery-token-ca-cert-hash sha256:ff41f2f0b8a9fa26328f7c484f6e2d605ddc9b57880d78ca299933f5aac807aa
+
+### 3.2. kubectl 설정
+```
+# mkdir -p $HOME/.kube
+# cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+# chown $(id -u):$(id -g) $HOME/.kube/config
+```
+
+### 3.3. Calico 설치
+```
+# kubectl create -f https://raw.githubusercontent.com/kubetm/kubetm.github.io/master/yamls/k8s-install/calico.yaml
+
+# kubectl create -f https://raw.githubusercontent.com/kubetm/kubetm.github.io/master/yamls/k8s-install/calico-custom.yaml
+```
+
+## 4. worker node를 master node에 연결
+> worker에서 실행
+
+### 4.1. kubeadm join 명령어로 worker node를 master node에 연결
+```
+# kubeadm join 10.0.30.16:6443 --token iz4jrg.i44kw4bduuybju2g \
+> .--discovery-token-ca-cert-hash sha256:ff41f2f0b8a9fa26328f7c484f6e2d605ddc9b57880d78ca299933f5aac807aa 
+accepts at most 1 arg(s), received 3
+To see the stack trace of this error execute with --v=5 or higher
+```
+
+#### 4.1.1. 위와 같은 에러 발생 시
+> master에서 실행
+- 키 재발급 필요
+```
+# kubeadm token create --print-join-command
+```
+
+#### 4.2.2. 정상실행 결과
+```
+# kubeadm join 10.0.30.16:6443 --token i0svv4.s2prpxyh8bqy7bbj --discovery-token-ca-cert-hash sha256:ff41f2f0b8a9fa26328f7c484f6e2d605ddc9b57880d78ca299933f5aac807aa
+[preflight] Running pre-flight checks
+[preflight] Reading configuration from the cluster...
+[preflight] FYI: You can look at this config file with 'kubectl -n kube-system get cm kubeadm-config -o yaml'
+[kubelet-start] Writing kubelet configuration to file "/var/lib/kubelet/config.yaml"
+[kubelet-start] Writing kubelet environment file with flags to file "/var/lib/kubelet/kubeadm-flags.env"
+[kubelet-start] Starting the kubelet
+[kubelet-start] Waiting for the kubelet to perform the TLS Bootstrap...
+
+This node has joined the cluster:
+* Certificate signing request was sent to apiserver and a response was received.
+* The Kubelet was informed of the new secure connection details.
+
+Run 'kubectl get nodes' on the control-plane to see this node join the cluster.
+```
+
+### 4.3. 설치 확인
+```
+
+```
+
