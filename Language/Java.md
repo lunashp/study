@@ -128,3 +128,25 @@ public class Main {
     }
 }
 ```
+
+## 10871 x보다 작은 수 
+```
+import java.util.Scanner;
+
+public class Main {
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        int x = sc.nextInt();
+        int y = sc.nextInt();
+
+        for (int i = 0; i < x; i = i+1){
+            int a = sc.nextInt();
+            if(a < y) {
+                System.out.println(a + "");
+            }
+        }
+    }
+}
+```
