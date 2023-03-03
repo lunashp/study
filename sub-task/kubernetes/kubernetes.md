@@ -451,13 +451,13 @@ Docker version 23.0.1, build a5ee5b1
 ```
 
 ### 2.7. kubelet, kubeadm, kubectl 설치 확인
-#### 2.7.1. kubelet 버전 확인Permalink
+#### 2.7.1. kubelet 버전 확인
 ```
 # kubelet --version
 Kubernetes v1.26.2
 ```
 
-#### 2.7.2. kubeadm 버전 확인Permalink
+#### 2.7.2. kubeadm 버전 확인
 ```
 # kubeadm version
 kubeadm version: &version.Info{Major:"1", Minor:"26", GitVersion:"v1.26.2", GitCommit:"fc04e732bb3e7198d2fa44efa5457c7c6f8c0f5b", GitTreeState:"clean", BuildDate:"2023-02-22T13:37:39Z", GoVersion:"go1.19.6", Compiler:"gc", Platform:"linux/amd64"}
@@ -472,61 +472,27 @@ Kustomize Version: v4.5.7
 The connection to the server localhost:8080 was refused - did you specify the right host or port?
 ```
 
-### systemd를 cgroup driver로 사용
+## container cri 관련 설정 주석 처리 
 ```
-# vi /etc/containerd/config.toml
----
+# sed -i '/"cri"/ s/^/#/' /etc/containerd/config.toml
+```
 
-[plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc]
-  ...
-  [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc.options]
-    SystemdCgroup = true
-```
 
 ## 3. master node에 kubeadm 설치
 > master에서 실행
 
-### 3.1. Master node 초기화
-- Master node의 private ip 입력
+### 3.1. kubeadm init 명령어로 master node 초기화 (initializing)
 ```
-# ifconfig
-# sudo kubeadm init \
-> --apiserver-cert-extra-sans=10.0.30.16 \
-> --control-plane-endpoint=10.0.30.16
+# kubeadm init --pod-network-cidr=10.244.0.0/16
 ```
 
-#### 3.1.1 실행 결과
+#### 3.1.1. 'kubeadm join' 명령어 별도 저장
 ```
-Your Kubernetes control-plane has initialized successfully!
+초기화 완료 후 아래와 같이 화면 하단에 출력되는 명령어는 worker node 연결을 위해 필요하므로 별도로 저장
 
-To start using your cluster, you need to run the following as a regular user:
-
-  mkdir -p $HOME/.kube
-  sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
-  sudo chown $(id -u):$(id -g) $HOME/.kube/config
-
-Alternatively, if you are the root user, you can run:
-
-  export KUBECONFIG=/etc/kubernetes/admin.conf
-
-You should now deploy a pod network to the cluster.
-Run "kubectl apply -f [podnetwork].yaml" with one of the options listed at:
-  https://kubernetes.io/docs/concepts/cluster-administration/addons/
-
-You can now join any number of control-plane nodes by copying certificate authorities
-and service account keys on each node and then running the following as root:
-
-  kubeadm join 10.0.30.16:6443 --token iz4jrg.i44kw4bduuybju2g \
-	--discovery-token-ca-cert-hash sha256:ff41f2f0b8a9fa26328f7c484f6e2d605ddc9b57880d78ca299933f5aac807aa \
-	--control-plane 
-
-Then you can join any number of worker nodes by running the following on each as root:
-
-kubeadm join 10.0.30.16:6443 --token iz4jrg.i44kw4bduuybju2g \
-	--discovery-token-ca-cert-hash sha256:ff41f2f0b8a9fa26328f7c484f6e2d605ddc9b57880d78ca299933f5aac807aa 
+kubeadm join 10.0.20.16:6443 --token dti1ij.cb5qfvxm3qda1pol \
+	--discovery-token-ca-cert-hash sha256:2ebedfd117c377b674e3dc9c03ce59f60428efce55c86b2fec093228c704ddf5
 ```
-- kubeadm join 10.0.30.16:6443 --token iz4jrg.i44kw4bduuybju2g \
-	--discovery-token-ca-cert-hash sha256:ff41f2f0b8a9fa26328f7c484f6e2d605ddc9b57880d78ca299933f5aac807aa
 
 ### 3.2. kubectl 설정
 ```
@@ -535,34 +501,59 @@ kubeadm join 10.0.30.16:6443 --token iz4jrg.i44kw4bduuybju2g \
 # chown $(id -u):$(id -g) $HOME/.kube/config
 ```
 
-### 3.3. Calico 설치
+### 3.3. master node의 pod 목록 조회
+> 아래 결과는 flannel 설치 전이기 때문에 coredns pod가 pending상태
 ```
-# kubectl create -f https://raw.githubusercontent.com/kubetm/kubetm.github.io/master/yamls/k8s-install/calico.yaml
+root@master:/home/ubuntu# kubectl get pods -n kube-system
+NAME                             READY   STATUS              RESTARTS   AGE
+coredns-787d4945fb-fvlf7         0/1     ContainerCreating   0          47s
+coredns-787d4945fb-vlhjm         0/1     ContainerCreating   0          47s
+etcd-master                      1/1     Running             0          62s
+kube-apiserver-master            1/1     Running             0          61s
+kube-controller-manager-master   1/1     Running             0          61s
+kube-proxy-szcd2                 1/1     Running             0          47s
+kube-scheduler-master            1/1     Running             0          62s
+```
 
-# kubectl create -f https://raw.githubusercontent.com/kubetm/kubetm.github.io/master/yamls/k8s-install/calico-custom.yaml
+### 3.4. flannel 설치
+```
+# kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+```
+
+### 3.5. flannel 설치 확인
+```
+root@master:/home/ubuntu# kubectl get pods -n kube-system
+NAME                             READY   STATUS    RESTARTS   AGE
+coredns-787d4945fb-fvlf7         1/1     Running   0          95s
+coredns-787d4945fb-vlhjm         1/1     Running   0          95s
+etcd-master                      1/1     Running   0          110s
+kube-apiserver-master            1/1     Running   0          109s
+kube-controller-manager-master   1/1     Running   0          109s
+kube-proxy-szcd2                 1/1     Running   0          95s
+kube-scheduler-master            1/1     Running   0          110s
 ```
 
 ## 4. worker node를 master node에 연결
-> worker에서 실행
+> worker node에서 실행
 
-### 4.1. kubeadm join 명령어로 worker node를 master node에 연결
+### 4.1. !kubeadm join 명령어로 worker node를 master node에 연결
 ```
-# kubeadm join 10.0.30.16:6443 --token iz4jrg.i44kw4bduuybju2g \
-> .--discovery-token-ca-cert-hash sha256:ff41f2f0b8a9fa26328f7c484f6e2d605ddc9b57880d78ca299933f5aac807aa 
+root@worker1:/home/ubuntu# kubeadm join 10.0.20.16:6443 --token dti1ij.cb5qfvxm3qda1pol \
+> .--discovery-token-ca-cert-hash sha256:2ebedfd117c377b674e3dc9c03ce59f60428efce55c86b2fec093228c704ddf5 
 accepts at most 1 arg(s), received 3
 To see the stack trace of this error execute with --v=5 or higher
 ```
 
-#### 4.1.1. 위와 같은 에러 발생 시
-> master에서 실행
-- 키 재발급 필요
+#### 4.1.1. kubeadm join 진행 시 에러 해결 방법
+> master node에서 진행
 ```
-# kubeadm token create --print-join-command
+root@master:/home/ubuntu# kubeadm token create --print-join-command
+kubeadm join 10.0.20.16:6443 --token dy94o2.den2fs818hgtpvpm --discovery-token-ca-cert-hash sha256:2ebedfd117c377b674e3dc9c03ce59f60428efce55c86b2fec093228c704ddf5
 ```
 
-#### 4.2.2. 정상실행 결과
+#### 4.1.2. kubeadm join 진행 시 정상 결과 화면
 ```
-# kubeadm join 10.0.30.16:6443 --token i0svv4.s2prpxyh8bqy7bbj --discovery-token-ca-cert-hash sha256:ff41f2f0b8a9fa26328f7c484f6e2d605ddc9b57880d78ca299933f5aac807aa
+root@worker1:/home/ubuntu# kubeadm join 10.0.20.16:6443 --token dy94o2.den2fs818hgtpvpm --discovery-token-ca-cert-hash sha256:2ebedfd117c377b674e3dc9c03ce59f60428efce55c86b2fec093228c704ddf5
 [preflight] Running pre-flight checks
 [preflight] Reading configuration from the cluster...
 [preflight] FYI: You can look at this config file with 'kubectl -n kube-system get cm kubeadm-config -o yaml'
@@ -578,8 +569,14 @@ This node has joined the cluster:
 Run 'kubectl get nodes' on the control-plane to see this node join the cluster.
 ```
 
-### 4.3. 설치 확인
-```
+## 5. kubernetes cluster 설치 확인
+> master에서 진행
 
+### 5.1. 전체 nodes 조회
 ```
-
+root@master:/home/ubuntu# kubectl get nodes -o wide
+NAME      STATUS   ROLES           AGE   VERSION   INTERNAL-IP   EXTERNAL-IP   OS-IMAGE             KERNEL-VERSION       CONTAINER-RUNTIME
+master    Ready    control-plane   16m   v1.26.2   10.0.20.16    <none>        Ubuntu 18.04.6 LTS   4.15.0-197-generic   containerd://1.6.18
+worker1   Ready    <none>          14m   v1.26.2   10.0.20.17    <none>        Ubuntu 18.04.6 LTS   4.15.0-197-generic   containerd://1.6.18
+worker2   Ready    <none>          13m   v1.26.2   10.0.20.18    <none>        Ubuntu 18.04.6 LTS   4.15.0-197-generic   containerd://1.6.18
+```
