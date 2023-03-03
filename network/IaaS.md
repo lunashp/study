@@ -71,3 +71,9 @@ haproxy_private_network_name: "default" # PaaS-TA Private Network Name (vSphere 
         + haproxy_public_network_name: "proxy"
         + haproxy_private_network_name: "default"
 
+## cp 배포 
+### ova 템플릿 경로
+- http://cloud-images.ubuntu.com/focal/current/
+   + focal-server-cloudimg-amd64.ova 
+
+### ubuntu 20.04로 진행
