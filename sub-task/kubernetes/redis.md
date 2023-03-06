@@ -6,43 +6,36 @@
 ```
 ---
 apiVersion: v1
-kind: Service
-metadata:
-  name: redis-service
-spec:
-  type: NodePort
-  ports:
-  - targetPort: 6379              # 애플리케이션(파드)을 노출하는 포트
-    port: 6379                    # 서비스를 노출하는 포트
-    nodePort: 30008             # 외부 사용자가 애플리케이션에 접근하기 위한 포트번호(선택)
-  selector:                             # 이 서비스가 적용될 파드 정보를 지정
-    app: redis
----
-apiVersion: apps/v1
-kind: Deployment
+kind: Pod
 metadata:
   name: redis
   labels:
     app: redis
 spec:
-  replicas: 1
+  containers:
+  - name: redis
+    image: redis
+    command:
+    - redis-server
+    args:
+    - --requirepass
+    - "myPassword"
+    ports:
+    - containerPort: 6379
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+spec:
   selector:
-    matchLabels:
-      app: redis
-  template:
-    metadata:
-      labels:
-        app: redis
-    spec:
-      containers:
-        - name: redis
-          image: redis
-          ports:
-            - containerPort: 6379
-          env:
-            # - name: ALLOW_EMPTY_PASSWORD
-            #   value: "yes"
-            - name: REDIS_PASSWORD
-              value: PaaS-TA@2023
+    app: redis
+  ports:
+  - name: redis
+    port: 6379
+    targetPort: 6379
+    nodePort: 32000
+  type: NodePort
 
 ```
