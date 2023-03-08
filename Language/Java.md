@@ -255,7 +255,7 @@ public class Main {
 }
 ```
 
-## 숫자의 개수
+## 2577 숫자의 개수
 ```
 import java.util.Scanner;
 
@@ -276,6 +276,19 @@ public class Main {
 
         for(int i = 0; i < 10; i=i+1)
             System.out.println(arr[i]);
+    }
+}
+```
+
+## 15596 정수 N개의 합
+```
+public class Test {
+    long sum(int[]a){
+        long sum = 0;
+        for (int i = 0; i < a.length; i = i + 1){
+            sum += a[i];
+        }
+        return sum;
     }
 }
 ```
