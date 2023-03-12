@@ -292,3 +292,19 @@ public class Test {
     }
 }
 ```
+
+## 11654 아스키코드
+```
+import java.util.Scanner;
+
+class Main {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        int x = sc.next().charAt(0);
+
+        System.out.print(x);
+
+    }
+}
+```
