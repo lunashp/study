@@ -308,3 +308,25 @@ class Main {
     }
 }
 ```
+
+## 2869 달팽이는 올라가고싶다
+```
+import java.util.Scanner;
+
+public class Main {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        int A = sc.nextInt(); // 올라갈 수 있는 길이
+        int B = sc.nextInt(); // 미끄러지는 길이
+        int V = sc.nextInt(); // 높이
+        
+        int day = (V - B) / (A - B);
+        
+        if ((V - B) % (A - B) != 0){
+            day++;
+        }
+        System.out.println(day);
+    }
+}
+```
