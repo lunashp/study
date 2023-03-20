@@ -85,3 +85,4 @@ Output: mount: /var/lib/kubelet/pods/1e2cd8e4-75e6-4d34-b36f-7e09d1306973/volume
 ```
 root@master:/home/ubuntu/workspace/mariadb# apt-get install nfs-common 
 ```
+- 모든 node에 설치 필요 
