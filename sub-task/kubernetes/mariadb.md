@@ -308,3 +308,47 @@ spce:
     persistentVolumeClaim:
       claimName: pvc-hostpath
 ```
+
+### mariadb-deployment.yaml
+```
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mariadb
+spec:
+  selector:
+    matchLabels:
+      app: mariadb
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: mariadb
+    spec:
+      containers:
+      - image: mariadb:10.7 # MariaDB 이미지 
+        name: mariadb
+        ports:
+        - containerPort: 3306 # Container 포트
+          name: mariadb
+        volumeMounts:
+        - name: mariadb-persistent-storage
+          mountPath: /docker-entrypoint-initdb.d # 해당 폴더에 .sql 파일 존재 시 Container 생성 시 실행
+        - mountPath: /var/lib/mysql # MariaDB 이미지 공식 데이터 저장소 경로
+          subPath: "mysql"
+          name: mairadb-data
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+           secretKeyRef:
+             name: mariadb-secret # Secret의 이름
+             key: password   # Secret의 data에 들어간 key:value
+      volumes:
+      - name: mariadb-persistent-storage
+        configMap:
+          name: mariadb-initdb-config # configMap 설정
+      - name: mairadb-data
+        persistentVolumeClaim:
+          claimName: mariadb-pv-claim # pv 볼륨 설정
+```
