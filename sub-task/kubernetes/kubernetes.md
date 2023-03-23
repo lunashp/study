@@ -580,3 +580,13 @@ master    Ready    control-plane   16m   v1.26.2   10.0.20.16    <none>        U
 worker1   Ready    <none>          14m   v1.26.2   10.0.20.17    <none>        Ubuntu 18.04.6 LTS   4.15.0-197-generic   containerd://1.6.18
 worker2   Ready    <none>          13m   v1.26.2   10.0.20.18    <none>        Ubuntu 18.04.6 LTS   4.15.0-197-generic   containerd://1.6.18
 ```
+
+---
+## 요약 
+> 참고: https://subicura.com/2019/05/19/kubernetes-basic-1.html
+
+컨테이너와 관련된 많은 예제가 웹(프론트엔드+백엔드) 애플리케이션을 다루고 있지만, 실제 세상엔 더 다양한 형태의 애플리케이션이 있습니다. 
+쿠버네티스는 Deployment, StatefulSets, DaemonSet, Job, CronJob등 다양한 배포 방식을 지원합니다. 
+Deployment는 새로운 버전의 애플리케이션을 다양한 전략으로 무중단 배포할 수 있습니다. 
+StatefulSets은 실행 순서를 보장하고 호스트 이름과 볼륨을 일정하게 사용할 수 있어 순서나 데이터가 중요한 경우에 사용할 수 있습니다. 
+로그나 모니터링 등 모든 노드에 설치가 필요한 경우엔 DaemonSet을 이용하고 배치성 작업은 Job이나 CronJob을 이용하면 됩니다
