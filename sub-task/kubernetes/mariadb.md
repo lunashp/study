@@ -175,3 +175,191 @@ MariaDB [mydata]> select * from friends;
 +------+------+------+--------+
 3 rows in set (0.000 sec)
 ```
+
+---
+> pv와 pvc는 1:1 매핑이기에 재구성
+
+### maraidb-pv.yaml 
+```
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: mariadb-pv-volume # pv 이름
+  labels:
+    type: local
+spec:
+  storageClassName: mariadb-storage-class
+  capacity:
+    storage: 20Gi # 스토리지 용량 크기
+  accessModes:
+    - ReadWriteOnce # 하나의 Pod에서만 access가 가능하도록 설정, ReadWriteMany는 여러 개 노드에서 접근 가능
+  hostPath:
+    path: "/data/k8s/db/" # node에 저장될 스토리지 공간 
+
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: backup-pv-volume # pv 이름
+  labels:
+    type: local
+spec:
+  storageClassName: backup-storage-class
+  capacity:
+    storage: 30Gi # 스토리지 용량 크기
+  accessModes:
+    - ReadWriteOnce # 하나의 Pod에서만 access가 가능하도록 설정, ReadWriteMany는 여러 개 노드에서 접근 가능
+  hostPath:
+    path: "/backup/" # node에 저장될 스토리지 공간
+```
+
+### mariadb-pvc.yaml
+```
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mariadb-pv-claim # pvc 이름
+spec:
+  storageClassName: mariadb-storage-class
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: backup-pv-claim # pvc 이름
+spec:
+  storageClassName: backup-storage-class
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 30Gi
+```
+
+### mariadb-configmap.yaml
+```
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mariadb-initdb-config
+data:
+  init.sql: |
+    CREATE DATABASE IF NOT EXISTS mydata;
+    USE mydata;
+    CREATE TABLE friends (id INT, name VARCHAR(256), age INT, gender VARCHAR(3));
+    INSERT INTO friends VALUES (1, 'Eric', 30, 'm');
+    INSERT INTO friends VALUES (2, 'Luna', 26, 'f');
+    INSERT INTO friends VALUES (3, 'Ash', 22, 'm');
+```
+
+### mariadb-secret.yaml
+```
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mariadb-secret
+data:
+  password: UGFhUy1UQUBsdW5h # PaaS-TA@luna
+```
+
+### mariadb-deployment.yaml
+```
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mariadb
+spec:
+  selector:
+    matchLabels:
+      app: mariadb
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: mariadb
+    spec:
+      containers:
+      - image: mariadb:10.7 # MariaDB 이미지 
+        name: mariadb
+        ports:
+        - containerPort: 3306 # Container 포트
+          name: mariadb
+        volumeMounts:
+        - name: mariadb-persistent-storage
+          mountPath: /docker-entrypoint-initdb.d # 해당 폴더에 .sql 파일 존재 시 Container 생성 시 실행
+        - mountPath: /var/lib/mysql # MariaDB 이미지 공식 데이터 저장소 경로
+          subPath: "mysql"
+          name: mairadb-data
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+           secretKeyRef:
+             name: mariadb-secret # Secret의 이름
+             key: password # Secret의 data에 들어간 key:value
+      volumes:
+      - name: mariadb-persistent-storage
+        configMap:
+          name: mariadb-initdb-config # configMap 설정
+      - name: mairadb-data
+        persistentVolumeClaim:
+          claimName: mariadb-pv-claim # pv 볼륨 설정
+```
+
+### mariadb-svc.yaml
+```
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mariadb
+spec:
+  selector:
+    app: mariadb
+  ports:
+  - name: mariadb
+    port: 3306
+    targetPort: 3306
+    nodePort: 30000
+  type: NodePort
+```
+
+### mariadb-cronjob.yaml
+```
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: mariadb-backup-cron
+spec:
+  schedule: "*/5 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: mariadb-6cbdcbd779-8dssl
+            image: mariadb:10.7
+            command: ["/bin/bash"]
+            args: ["-c", "mysqldump -h 10.0.20.18 -P 30000 -u root -pPaaS-TA@luna --all-databases --skip-lock-tables > /backup/tdb-$(date +%Y%m%d).sql"]
+            env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mariadb-secret
+                  key: password
+            volumeMounts:
+            - name: backup-storage
+              mountPath: /backup
+          volumes:
+          - name: backup-storage
+            persistentVolumeClaim:
+              claimName: backup-pv-claim
+          restartPolicy: Never
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1
+```
