@@ -53,8 +53,8 @@ cf create-service nks 10 nks-sample -c '{
 ```
 ncloud@pub-vm:~$ cf create-service nks 10 nks-sample -c '{
 > "name" : "cluster-sample",
-> "k8sVersion" : "1.24.10",
-> "subnetNoList" : 15882,
+> "k8sVersion" : "1.24.10-nks.1",
+> "subnetNoList" : "15882",
 > "publicNetwork" : true,
 > "subnetLbNo" : 15880,
 > "loginKeyName" : "ncp-paasta-admin-key",
@@ -65,5 +65,14 @@ ncloud@pub-vm:~$ cf create-service nks 10 nks-sample -c '{
 > "nodePool" : "[{\"name\":\"np-sample\",\"productCode\":\"SVR.VSVR.STAND.C002.M008.NET.SSD.B050.G002\",\"nodeCount\":2}]"
 >  }'
 Creating service instance nks-sample in org system / space system-space as 0ad43080-d269-11ec-9996-005056a7e1b2...
+
+Create in progress. Use 'cf services' or 'cf service nks-sample' to check operation status.
 OK
+
+ncloud@pub-vm:~$ cf services
+Getting service instances in org system / space system-space as 0ad43080-d269-11ec-9996-005056a7e1b2...
+
+name              offering        plan   bound apps           last operation       broker               upgrade available
+nks-sample        nks             10                          create in progress   ncp-service-broker   no
+nsb-credentials   user-provided          ncp-service-broker      
 ```
