@@ -48,3 +48,22 @@ cf create-service nks 10 nks-sample -c '{
    + 대시보드 subnet(VM 서버)
 - subnetLbNo
    + 대시보드 subnet 
+
+## NKS 값 설정 수정
+```
+ncloud@pub-vm:~$ cf create-service nks 10 nks-sample -c '{
+> "name" : "cluster-sample",
+> "k8sVersion" : "1.24.10",
+> "subnetNoList" : 15882,
+> "publicNetwork" : true,
+> "subnetLbNo" : 15880,
+> "loginKeyName" : "ncp-paasta-admin-key",
+> "defaultNodePool.name": "dnp-sample",
+> "defaultNodePool.nodeCount" : 1,
+> "defaultNodePool.productCode" : "SVR.VSVR.STAND.C002.M008.NET.SSD.B050.G002",
+> "log.audit" : true,
+> "nodePool" : "[{\"name\":\"np-sample\",\"productCode\":\"SVR.VSVR.STAND.C002.M008.NET.SSD.B050.G002\",\"nodeCount\":2}]"
+>  }'
+Creating service instance nks-sample in org system / space system-space as 0ad43080-d269-11ec-9996-005056a7e1b2...
+OK
+```
