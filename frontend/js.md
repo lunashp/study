@@ -185,6 +185,3 @@ export default function (x) {
 export default x => x * 100;
 ```
 
-
-
-
